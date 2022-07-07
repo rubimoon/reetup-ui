@@ -72,7 +72,7 @@ export const updateActivityAsync = createAsyncThunk<
     }
   }
 );
-// deleteActivity
+
 export const deleteActivityAsync = createAsyncThunk<void, { id: string }>(
   "activities/deleteActivityAsync",
   async ({ id }, { rejectWithValue }) => {

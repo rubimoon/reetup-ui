@@ -53,6 +53,7 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
             />
           }
         />
+
         {/* <PrivateRoute
           path="/profiles/:username"
           element={

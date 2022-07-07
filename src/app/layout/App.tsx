@@ -6,7 +6,7 @@ import { getCurrentUserAysnc } from "../../features/users/userSlice";
 import ModalContainer from "../common/modals/ModalContainer";
 import { setAppLoaded } from "../store/commonSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
-import AppRoutes from "./AooRoutes";
+import AppRoutes from "./AppRoutes";
 import LoadingComponent from "./LoadingComponent";
 import NavBar from "./NavBar";
 

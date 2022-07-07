@@ -10,9 +10,8 @@ export const addCommentAsync = createAsyncThunk<
   { state: RootState }
 >("comment/addCommentAsync", async ({ values }, thunkAPI) => {
   try {
-    await thunkAPI
-      .getState()
-      .comment.hubConnection?.invoke("SendComment", values);
+    const connection = thunkAPI.getState().comment.hubConnection;
+    await connection?.invoke("SendComment", values);
   } catch (error: any) {
     thunkAPI.rejectWithValue({ error: error.data });
   }

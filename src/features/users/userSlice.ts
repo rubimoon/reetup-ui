@@ -119,5 +119,10 @@ export const userSlice = createSlice({
   },
 });
 
-export const { startRefreshTokenTimer, stopRefreshTokenTimer, logout } =
-  userSlice.actions;
+export const {
+  startRefreshTokenTimer,
+  stopRefreshTokenTimer,
+  logout,
+  setImage,
+  setDisplayName,
+} = userSlice.actions;
