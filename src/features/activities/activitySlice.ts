@@ -3,7 +3,11 @@ import agent from "../../app/api/agent";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult } from "../../app/models/pagination";
 import { Profile } from "../../app/models/profile";
-import { RootState, useAppSelector } from "../../app/store/configureStore";
+import {
+  RootState,
+  store,
+  useAppSelector,
+} from "../../app/store/configureStore";
 import { initialState } from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
@@ -24,9 +28,7 @@ export const loadActivityAsync = createAsyncThunk<
   "activities/loadActivityAsync",
   async ({ id }, { rejectWithValue }) => {
     try {
-      const result = await agent.Activities.details(id);
-      console.log("activities: ", result);
-      return result;
+      return await agent.Activities.details(id);
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
@@ -145,17 +147,18 @@ export const activitiesSlice = createSlice({
       state.loadingInitial = action.payload;
     },
     setActivity: (state, action) => {
-      // const user = store.userStore.user;
-      // if (user) {
-      //   activity.isGoing = activity.attendees!.some(
-      //     (a) => a.username === user.username
-      //   );
-      //   activity.isHost = activity.hostUsername === user.username;
-      //   activity.host = activity.attendees?.find(
-      //     (x) => x.username === activity.hostUsername
-      //   );
-      // }
-      const activity = action.payload;
+      const user = store.getState().user.user;
+      const activity = action.payload as Activity;
+      if (user) {
+        activity.isGoing = activity.attendees!.some(
+          (a) => a.username === user.username
+        );
+        activity.isHost = activity.hostUsername === user.username;
+        activity.host = activity.attendees?.find(
+          (x) => x.username === activity.hostUsername
+        );
+      }
+
       activity.date = new Date(activity.date!);
       state.activityRegistry.set(activity.id, activity);
     },
@@ -259,20 +262,6 @@ export const activitiesSlice = createSlice({
     });
   },
 });
-
-// function generateAxiosParams(state: ActivityState) {
-//   const params = new URLSearchParams();
-//   params.append("pageNumber", state.pagingParams.pageNumber.toString());
-//   params.append("pageSize", state.pagingParams.pageSize.toString());
-//   state.predicate.forEach((value, key) => {
-//     if (key === "startDate") {
-//       params.append(key, (value as Date).toISOString());
-//     } else {
-//       params.append(key, value);
-//     }
-//   });
-//   return params;
-// }
 
 export const {
   setPagingParams,
