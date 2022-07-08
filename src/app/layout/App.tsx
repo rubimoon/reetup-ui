@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Container } from "semantic-ui-react";
 import { getCurrentUserAysnc } from "../../features/users/userSlice";
-import ModalContainer from "../common/modals/ModalContainer";
+import ModalManager from "../common/modals/ModalManager";
 import { setAppLoaded } from "../store/commonSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
 import AppRoutes from "./AppRoutes";
@@ -31,8 +31,8 @@ const App = () => {
 
   return (
     <>
+      <ModalManager />
       <ToastContainer position="bottom-right" hideProgressBar />
-      <ModalContainer />
       <NavBar />
       <Container style={{ marginTop: "7em" }}>
         <AppRoutes location={location} isLoggedIn={isLoggedIn} />
