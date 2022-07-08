@@ -17,9 +17,11 @@ const App = () => {
   const isLoggedIn = !!useAppSelector((state) => state.user.user);
 
   useEffect(() => {
-    if (token) {
-      dispatch(getCurrentUserAysnc()).finally(() => setAppLoaded());
-    }
+    // if (token) {
+    dispatch(getCurrentUserAysnc());
+    dispatch(setAppLoaded());
+    console.log("token is", token);
+    // }
     // } else {
     //   userStore.getFacebookLoginStatus().then(() => commonStore.setAppLoaded());
     // }

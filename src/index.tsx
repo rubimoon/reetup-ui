@@ -1,13 +1,13 @@
-import ReactDOM from "react-dom";
 import "react-calendar/dist/Calendar.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "./app/layout/styles.css";
+import ReactDOM from "react-dom";
+import { store } from "./app/store/configureStore";
 import App from "./app/layout/App";
 import reportWebVitals from "./reportWebVitals";
 import ScrollToTop from "./app/layout/ScrollToTop";
 import { Provider } from "react-redux";
-import { store } from "./app/store/configureStore";
 import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
 import { createBrowserHistory } from "history";
 

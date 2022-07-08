@@ -14,6 +14,10 @@ export const store = configureStore({
     modal: modalSlice.reducer,
     comment: commentSlice.reducer,
   },
+  // middleware: (getDefaultMiddleware) =>
+  //   getDefaultMiddleware({
+  //     serializableCheck: false,
+  //   }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

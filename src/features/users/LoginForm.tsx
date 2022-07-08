@@ -3,14 +3,20 @@ import { Button, Header, Label } from "semantic-ui-react";
 import MyTextInput from "../../app/common/form/MyTextInput";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { loginAsync } from "./userSlice";
+import * as Yup from "yup";
 
 const LoginForm = () => {
   const dispatch = useAppDispatch();
+
   return (
     <Formik
-      initialValues={{ email: "", password: "", error: null }}
-      onSubmit={(values, { setErrors }) => {
-        dispatch(loginAsync({ creds: values, setErrors }));
+      initialValues={{ email: "", password: "" }}
+      validationSchema={Yup.object({
+        email: Yup.string().required().email(),
+        password: Yup.string().required(),
+      })}
+      onSubmit={async (values, { setErrors }) => {
+        dispatch(loginAsync({ creds: values }));
       }}
     >
       {({ handleSubmit, isSubmitting, errors }) => (
@@ -30,7 +36,7 @@ const LoginForm = () => {
                 style={{ marginBottom: 10 }}
                 basic
                 color="red"
-                content={errors.error}
+                content={errors}
               />
             )}
           />

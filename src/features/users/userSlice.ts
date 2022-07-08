@@ -6,18 +6,17 @@ import { history } from "../..";
 import { closeModal } from "../../app/store/modalSlice";
 import { setToken } from "../../app/store/commonSlice";
 
-export const loginAsync = createAsyncThunk<
-  User,
-  { creds: UserFormValues; setErrors: any }
->("user/loginAsync", async ({ creds, setErrors }, thunkAPI) => {
-  try {
-    return await agent.Account.login(creds);
-  } catch (error: any) {
-    return setErrors({
-      error: thunkAPI.rejectWithValue({ error: error.data }),
-    });
+export const loginAsync = createAsyncThunk<User, { creds: UserFormValues }>(
+  "user/loginAsync",
+  async ({ creds }, thunkAPI) => {
+    try {
+      // TODO ここで処理が止まる
+      return await agent.Account.login(creds);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
   }
-});
+);
 
 export const refreshTokenAsync = createAsyncThunk<User>(
   "user/refreshTokenAsync",
@@ -41,18 +40,16 @@ export const getCurrentUserAysnc = createAsyncThunk<User>(
   }
 );
 
-export const registerAsync = createAsyncThunk<
-  User,
-  { creds: UserFormValues; setErrors: any }
->("user/registerAsync", async ({ creds, setErrors }, thunkAPI) => {
-  try {
-    return await agent.Account.register(creds);
-  } catch (error: any) {
-    return setErrors({
-      error: thunkAPI.rejectWithValue({ error: error.data }),
-    });
+export const registerAsync = createAsyncThunk<User, { creds: UserFormValues }>(
+  "user/registerAsync",
+  async ({ creds }, thunkAPI) => {
+    try {
+      return await agent.Account.register(creds);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
   }
-});
+);
 
 // export const getFacebookLoginStatusAsync = createAsyncThunk(
 //   "user/getFacebookLoginStatusAsync",
@@ -94,9 +91,20 @@ export const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(loginAsync.pending, (state, action) => {
+      console.log("loginAsync.pending");
+    });
     builder.addCase(loginAsync.fulfilled, (state, action) => {
       const user = action.payload;
+      console.log("user is ", user);
       setToken(user.token);
+      startRefreshTokenTimer(user);
+      state.user = user;
+      closeModal();
+      history.push("/activities");
+    });
+    builder.addCase(loginAsync.rejected, (state, action) => {
+      console.log("loginAsync.rejected");
     });
 
     builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
@@ -110,6 +118,7 @@ export const userSlice = createSlice({
       setToken(user.token);
       state.user = user;
       startRefreshTokenTimer(user);
+      console.log(getCurrentUserAysnc.fulfilled);
     });
     builder.addCase(registerAsync.fulfilled, (state, action) => {
       const email = action.meta.arg.creds;

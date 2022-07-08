@@ -12,7 +12,7 @@ const NavBar = () => {
   return (
     <Menu inverted fixed="top">
       <Container>
-        <Menu.Item as={NavLink} exact to="/" header>
+        <Menu.Item as={NavLink} to="/" header>
           <img
             src="/assets/logo.png"
             alt="logo"

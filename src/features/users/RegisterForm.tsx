@@ -4,7 +4,7 @@ import MyTextInput from "../../app/common/form/MyTextInput";
 import * as Yup from "yup";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { registerAsync } from "./userSlice";
-// import ValidationErrors from "../errors/ValidationErrors";
+import ValidationErrors from "../errors/ValidationErrors";
 
 const RegisterForm = () => {
   const dispatch = useAppDispatch();
@@ -18,7 +18,9 @@ const RegisterForm = () => {
         error: null,
       }}
       onSubmit={(values, { setErrors }) =>
-        dispatch(registerAsync({ creds: values, setErrors }))
+        dispatch(registerAsync({ creds: values })).catch((error) =>
+          setErrors(error)
+        )
       }
       validationSchema={Yup.object({
         displayName: Yup.string().required(),
@@ -45,7 +47,7 @@ const RegisterForm = () => {
           <MyTextInput name="password" placeholder="Password" type="password" />
           <ErrorMessage
             name="error"
-            // render={() => <ValidationErrors errors={errors.error} />}
+            render={() => <ValidationErrors errors={errors.error} />}
           />
           <Button
             disabled={!isValid || !dirty || isSubmitting}

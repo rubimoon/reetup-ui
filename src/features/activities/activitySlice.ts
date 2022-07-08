@@ -9,17 +9,13 @@ import { initialState } from "./activityState";
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
   { params: URLSearchParams }
->(
-  "activities/loadActivitiesAsync",
-  async ({ params }, { getState, rejectWithValue }) => {
-    try {
-      // const { axiosParams } = (getState() as RootState).activities;
-      return await agent.Activities.list(params);
-    } catch (error: any) {
-      return rejectWithValue({ error: error.data });
-    }
+>("activities/loadActivitiesAsync", async ({ params }, { rejectWithValue }) => {
+  try {
+    return await agent.Activities.list(params);
+  } catch (error: any) {
+    return rejectWithValue({ error: error.data });
   }
-);
+});
 export const loadActivityAsync = createAsyncThunk<
   Activity,
   { id: string },
@@ -28,7 +24,9 @@ export const loadActivityAsync = createAsyncThunk<
   "activities/loadActivityAsync",
   async ({ id }, { rejectWithValue }) => {
     try {
-      return await agent.Activities.details(id);
+      const result = await agent.Activities.details(id);
+      console.log("activities: ", result);
+      return result;
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
@@ -37,9 +35,7 @@ export const loadActivityAsync = createAsyncThunk<
     condition: ({ id }, thunkAPI) => {
       const { activityRegistry } = thunkAPI.getState().activities;
       const activity = activityRegistry.get(id);
-      if (activity) {
-        return false;
-      }
+      return !activity;
     },
   }
 );
@@ -182,6 +178,7 @@ export const activitiesSlice = createSlice({
   extraReducers: (builder) => {
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
       // setLoadingNext(false);
+      console.log(action.payload.data);
       action.payload.data.forEach((activity) => {
         setActivity(activity);
       });
