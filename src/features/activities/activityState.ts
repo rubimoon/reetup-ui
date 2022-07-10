@@ -1,24 +1,37 @@
 import { Activity } from "../../app/models/activity";
 import { Pagination, PagingParams } from "../../app/models/pagination";
+import { User } from "../../app/models/user";
 
 export interface ActivityState {
-  activityRegistry: Map<string, Activity>;
+  activityRegistry: { [key: string]: Activity };
   selectedActivity: Activity | undefined;
   editMode: boolean;
   loading: boolean;
   loadingInitial: boolean;
   pagination: Pagination | null;
   pagingParams: PagingParams;
-  predicate: Map<any, any>;
+  predicate: { [key: string]: any };
 }
 
 export const initialState: ActivityState = {
-  activityRegistry: new Map<string, Activity>(),
+  activityRegistry: {},
   selectedActivity: undefined,
   editMode: false,
   loading: false,
   loadingInitial: false,
   pagination: null,
-  pagingParams: new PagingParams(),
-  predicate: new Map().set("all", true),
+  pagingParams: {
+    pageNumber: 1,
+    pageSize: 2,
+  },
+  predicate: { all: true },
 };
+
+export interface SetActivityState {
+  activity: Activity | null;
+  currentUser: User | null;
+}
+
+export interface LoadActivityAsyncState {
+  activity: Activity;
+}

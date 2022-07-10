@@ -2,17 +2,16 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import agent from "../../app/api/agent";
 import { User, UserFormValues } from "../../app/models/user";
 import { initialState } from "./userState";
-import { history } from "../..";
-import { closeModal } from "../../app/store/modalSlice";
 import { setToken } from "../../app/store/commonSlice";
+import { RootState } from "../../app/store/configureStore";
 
 export const loginAsync = createAsyncThunk<User, { creds: UserFormValues }>(
   "user/loginAsync",
   async ({ creds }, thunkAPI) => {
     try {
-      // TODO ここで処理が止まる
       return await agent.Account.login(creds);
     } catch (error: any) {
+      console.log(error);
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }
@@ -32,8 +31,18 @@ export const refreshTokenAsync = createAsyncThunk<User>(
 export const getCurrentUserAysnc = createAsyncThunk<User>(
   "user/getCurrentUserAysnc",
   async (_, thunkAPI) => {
+    console.log("getCurrentUserAysnc is called");
     try {
-      return await agent.Account.current();
+      const currentUser = await agent.Account.current();
+      if (currentUser) {
+        console.log("user is logged in");
+        thunkAPI.dispatch(setToken(currentUser.token));
+        thunkAPI.dispatch(startRefreshTokenTimer(currentUser));
+        console.log("current user token is ", currentUser.token);
+      } else {
+        console.log("user is not logged in");
+      }
+      return currentUser;
     } catch (error: any) {
       return thunkAPI.rejectWithValue({ error: error.data });
     }
@@ -51,28 +60,25 @@ export const registerAsync = createAsyncThunk<User, { creds: UserFormValues }>(
   }
 );
 
-// export const getFacebookLoginStatusAsync = createAsyncThunk(
-//   "user/getFacebookLoginStatusAsync",
-//   async (_, thunkAPI) => {
-//     window.FB.getLoginStatus((response) => {
-//       if (response.status === "connected") {
-//         this.fbAccessToken = response.authResponse.accessToken;
-//       }
-//     });
-//   }
-// );
+export const getFacebookLoginStatusAsync = createAsyncThunk<
+  void,
+  void,
+  { state: RootState }
+>("user/getFacebookLoginStatusAsync", async (_, thunkAPI) => {
+  window.FB.getLoginStatus((response) => {
+    if (response.status === "connected") {
+      thunkAPI.dispatch(setFbAccessToken(response.authResponse.accessToken));
+    }
+  });
+});
 
 export const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
     logout: (state) => {
-      setToken(null);
-      window.localStorage.removeItem("jwt");
       state.user = null;
-      history.push("/");
     },
-
     setImage: (state, action: { payload: string }) => {
       if (state.user) state.user.displayName = action.payload;
     },
@@ -89,19 +95,21 @@ export const userSlice = createSlice({
     stopRefreshTokenTimer: (state) => {
       clearTimeout(state.refreshTokenTimeout);
     },
+    setFbAccessToken: (state, action) => {
+      state.fbAccessToken = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(loginAsync.pending, (state, action) => {
       console.log("loginAsync.pending");
     });
     builder.addCase(loginAsync.fulfilled, (state, action) => {
-      const user = action.payload;
-      console.log("user is ", user);
-      setToken(user.token);
-      startRefreshTokenTimer(user);
-      state.user = user;
-      closeModal();
-      history.push("/activities");
+      // setToken(user.token);
+      // startRefreshTokenTimer(user);
+      state.user = action.payload;
+
+      // closeModal();
+      // history.push("/activities");
     });
     builder.addCase(loginAsync.rejected, (state, action) => {
       console.log("loginAsync.rejected");
@@ -110,20 +118,23 @@ export const userSlice = createSlice({
     builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
       const user = action.payload;
       state.user = user;
-      setToken(user.token);
-      startRefreshTokenTimer(user);
+      // setToken(user.token);
+      // startRefreshTokenTimer(user);
     });
     builder.addCase(getCurrentUserAysnc.fulfilled, (state, action) => {
-      const user = action.payload;
-      setToken(user.token);
-      state.user = user;
-      startRefreshTokenTimer(user);
+      // setToken(user.token);
+      state.user = action.payload;
       console.log(getCurrentUserAysnc.fulfilled);
     });
+    builder.addCase(getCurrentUserAysnc.rejected, (state, action) => {
+      console.log("getCurrentUserAysnc.rejected");
+    });
     builder.addCase(registerAsync.fulfilled, (state, action) => {
-      const email = action.meta.arg.creds;
-      history.push(`/account/registerSuccess?email=${email}`);
-      closeModal();
+      // const payload = action.payload;
+      // const email = action.meta.arg.creds.email;
+      state.email = action.payload.email;
+      // history.push(`/account/registerSuccess?email=${email}`);
+      // closeModal();
     });
   },
 });
@@ -134,4 +145,5 @@ export const {
   logout,
   setImage,
   setDisplayName,
+  setFbAccessToken,
 } = userSlice.actions;

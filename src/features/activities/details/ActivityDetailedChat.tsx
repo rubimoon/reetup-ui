@@ -14,22 +14,27 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
+import { Activity } from "../../../app/models/activity";
 
 interface Props {
-  activityId: string;
+  activity: Activity;
 }
 
-const ActivityDetailedChat = ({ activityId }: Props) => {
+const ActivityDetailedChat = ({ activity }: Props) => {
   const dispatch = useAppDispatch();
   const comments = useAppSelector((state) => state.comment.comments);
+  const currentUser = useAppSelector((state) => state.user.user);
+  const selectedActivity = useAppSelector(
+    (state) => state.activities.selectedActivity
+  );
   useEffect(() => {
-    if (activityId) {
-      createHubConnection(activityId);
+    if (activity && currentUser) {
+      createHubConnection({ activity, currentUser });
     }
     return () => {
       clearComments();
     };
-  }, [activityId]);
+  }, [activity, currentUser]);
 
   return (
     <>
@@ -44,9 +49,13 @@ const ActivityDetailedChat = ({ activityId }: Props) => {
       </Segment>
       <Segment attached clearing>
         <Formik
-          onSubmit={(values, { resetForm }) =>
-            dispatch(addCommentAsync({ values })).then(() => resetForm())
-          }
+          onSubmit={(values, { resetForm }) => {
+            if (selectedActivity) {
+              dispatch(addCommentAsync({ values, selectedActivity })).then(() =>
+                resetForm()
+              );
+            }
+          }}
           initialValues={{ body: "" }}
           validationSchema={Yup.object({
             body: Yup.string().required(),

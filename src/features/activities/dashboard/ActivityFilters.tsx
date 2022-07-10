@@ -11,17 +11,17 @@ const ActivityFilters = () => {
         <Header icon="filter" attached color="teal" content="Filters" />
         <Menu.Item
           content="All Activites"
-          active={predicate.has("all")}
+          active={"all" in predicate}
           onClick={() => setPredicate({ predicate: "all", value: "true" })}
         />
         <Menu.Item
           content="I'm going"
-          active={predicate.has("isGoing")}
+          active={"isGoing" in predicate}
           onClick={() => setPredicate({ predicate: "isGoing", value: "true" })}
         />
         <Menu.Item
           content="I'm hosting"
-          active={predicate.has("isHost")}
+          active={"isHost" in predicate}
           onClick={() => setPredicate({ predicate: "isHost", value: "true" })}
         />
       </Menu>
@@ -30,7 +30,7 @@ const ActivityFilters = () => {
         onChange={(date: any) =>
           setPredicate({ predicate: "startDate", value: date as Date })
         }
-        value={predicate.get("startDate") || new Date()}
+        value={predicate["startDate"] || new Date()}
       />
     </>
   );

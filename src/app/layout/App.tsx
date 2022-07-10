@@ -2,7 +2,10 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import { Container } from "semantic-ui-react";
-import { getCurrentUserAysnc } from "../../features/users/userSlice";
+import {
+  getCurrentUserAysnc,
+  getFacebookLoginStatusAsync,
+} from "../../features/users/userSlice";
 import ModalManager from "../common/modals/ModalManager";
 import { setAppLoaded } from "../store/commonSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
@@ -14,18 +17,20 @@ const App = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { token, appLoaded } = useAppSelector((state) => state.common);
-  const isLoggedIn = !!useAppSelector((state) => state.user.user);
+  const currentUser = useAppSelector((state) => state.user.user);
 
   useEffect(() => {
-    // if (token) {
-    dispatch(getCurrentUserAysnc());
+    if (token) {
+      console.log("token is ", token);
+      console.log("user has token in the browser");
+      dispatch(getCurrentUserAysnc()).catch((err) => {
+        console.log(err);
+      });
+    } else {
+      dispatch(getFacebookLoginStatusAsync());
+    }
     dispatch(setAppLoaded());
-    console.log("token is", token);
-    // }
-    // } else {
-    //   userStore.getFacebookLoginStatus().then(() => commonStore.setAppLoaded());
-    // }
-  }, [dispatch, token]);
+  }, [currentUser, dispatch, token]);
 
   if (!appLoaded) return <LoadingComponent content="Loading app..." />;
 
@@ -35,7 +40,7 @@ const App = () => {
       <ToastContainer position="bottom-right" hideProgressBar />
       <NavBar />
       <Container style={{ marginTop: "7em" }}>
-        <AppRoutes location={location} isLoggedIn={isLoggedIn} />
+        <AppRoutes location={location} isLoggedIn={!!currentUser} />
       </Container>
     </>
   );

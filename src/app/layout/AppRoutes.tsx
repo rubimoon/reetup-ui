@@ -4,11 +4,11 @@ import ProtectedRoute from "./PrivateRoute";
 import ActivityDashboard from "../../features/activities/dashboard/ActivityDashboard";
 import ActivityDetails from "../../features/activities/details/ActivityDetails";
 import ActivityForm from "../../features/activities/form/ActivityForm";
-import NotFound from "../../features/errors/NotFound";
+import NotFound from "../errors/ui/NotFound";
 import RegisterSuccess from "../../features/users/RegisterSuccess";
 import ConfirmEmail from "../../features/users/ConfirmEmail";
-import ServerError from "../../features/errors/ServerError";
-import TestErrors from "../../features/errors/TestError";
+import ServerError from "../errors/ui/ServerError";
+import TestErrors from "../errors/ui/TestError";
 
 interface Props {
   location: any;

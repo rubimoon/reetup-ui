@@ -1,11 +1,13 @@
 import { Fragment } from "react";
 import { Header } from "semantic-ui-react";
-import useActivities from "../useActivities";
+import { Activity } from "../../../app/models/activity";
 import ActivityListItem from "./ActivityListItem";
 
-const ActivityList = () => {
-  const { groupedActivities } = useActivities();
-
+interface Props {
+  groupedActivities: [string, Activity[]][];
+}
+const ActivityList = ({ groupedActivities }: Props) => {
+  console.log("groupedActivities", groupedActivities);
   return (
     <>
       {groupedActivities.map(([group, activities]) => (

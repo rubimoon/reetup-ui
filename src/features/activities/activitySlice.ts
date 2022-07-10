@@ -1,34 +1,45 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import agent from "../../app/api/agent";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult } from "../../app/models/pagination";
 import { Profile } from "../../app/models/profile";
-import {
-  RootState,
-  store,
-  useAppSelector,
-} from "../../app/store/configureStore";
-import { initialState } from "./activityState";
+import { User } from "../../app/models/user";
+import { RootState } from "../../app/store/configureStore";
+import { initialState, SetActivityState } from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
-  { params: URLSearchParams }
->("activities/loadActivitiesAsync", async ({ params }, { rejectWithValue }) => {
-  try {
-    return await agent.Activities.list(params);
-  } catch (error: any) {
-    return rejectWithValue({ error: error.data });
+  { params: URLSearchParams },
+  { state: RootState }
+>(
+  "activities/loadActivitiesAsync",
+  async ({ params }, { getState, rejectWithValue, dispatch }) => {
+    try {
+      const result = await agent.Activities.list(params);
+      const currentUser = getState().user.user;
+      console.log("result: " + result);
+      result.data.forEach((activity) =>
+        dispatch(setActivity({ activity, currentUser }))
+      );
+      return result;
+    } catch (error: any) {
+      return rejectWithValue({ error: error.data });
+    }
   }
-});
+);
+
 export const loadActivityAsync = createAsyncThunk<
   Activity,
   { id: string },
   { state: RootState }
 >(
   "activities/loadActivityAsync",
-  async ({ id }, { rejectWithValue }) => {
+  async ({ id }, { rejectWithValue, dispatch, getState }) => {
     try {
-      return await agent.Activities.details(id);
+      const currentUser = getState().user.user;
+      const activity = await agent.Activities.details(id);
+      dispatch(setActivity({ activity, currentUser }));
+      return activity;
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
@@ -36,7 +47,7 @@ export const loadActivityAsync = createAsyncThunk<
   {
     condition: ({ id }, thunkAPI) => {
       const { activityRegistry } = thunkAPI.getState().activities;
-      const activity = activityRegistry.get(id);
+      const activity = activityRegistry[id];
       return !activity;
     },
   }
@@ -44,13 +55,20 @@ export const loadActivityAsync = createAsyncThunk<
 
 export const createActivityAsync = createAsyncThunk<
   Activity,
-  { activity: ActivityFormValues }
+  { activity: ActivityFormValues },
+  { state: RootState }
 >(
   "activities/createActivityAsync",
-  async ({ activity }, { rejectWithValue }) => {
+  async ({ activity }, { getState, rejectWithValue, dispatch }) => {
     try {
       await agent.Activities.create(activity);
-      return new Activity(activity);
+      const newActivity = new Activity(activity);
+      const currentUser = getState().user.user;
+      const attendee = new Profile(currentUser!);
+      newActivity.hostUsername = currentUser!.username;
+      newActivity.attendees = [attendee];
+      dispatch(setActivity({ activity: newActivity, currentUser }));
+      return newActivity;
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
@@ -84,7 +102,7 @@ export const deleteActivityAsync = createAsyncThunk<void, { id: string }>(
 
 export const updateAttendanceAsync = createAsyncThunk<
   void,
-  void,
+  { currentUser: User },
   { state: RootState }
 >("activities/updateAttendanceAsync", async (_, thunkAPI) => {
   const { selectedActivity } = thunkAPI.getState().activities;
@@ -112,43 +130,44 @@ export const activitiesSlice = createSlice({
   name: "activities",
   initialState,
   reducers: {
+    setLoadingInitial: (state, action) => {
+      state.loadingInitial = action.payload;
+    },
     setPagingParams: (state, action) => {
-      state.pagingParams = action.payload;
+      state.pagingParams.pageNumber = action.payload;
     },
     setPredicate: (state, action) => {
       const { predicate, value } = action.payload;
       const resetPredicate = () => {
-        state.predicate.forEach((value, key) => {
-          if (key !== "startDate") state.predicate.delete(key);
+        Object.keys(state.predicate).forEach((key) => {
+          if (key !== "startDate") delete state.predicate[key];
         });
       };
       switch (predicate) {
         case "all":
           resetPredicate();
-          state.predicate.set("all", true);
+          state.predicate["all"] = true;
           break;
         case "isGoing":
           resetPredicate();
-          state.predicate.set("isGoing", true);
+          state.predicate["isGoing"] = true;
           break;
         case "isHost":
           resetPredicate();
-          state.predicate.set("isHost", true);
+          state.predicate["isHost"] = true;
           break;
         case "startDate":
-          state.predicate.delete("startDate");
-          state.predicate.set("startDate", value);
+          delete state.predicate["startDate"];
+          state.predicate["startDate"] = value;
       }
     },
     setPagination: (state, action) => {
       state.pagination = action.payload;
     },
-    setLoadingInitial: (state, action) => {
-      state.loadingInitial = action.payload;
-    },
-    setActivity: (state, action) => {
-      const user = store.getState().user.user;
-      const activity = action.payload as Activity;
+    setActivity: (state, action: PayloadAction<SetActivityState>) => {
+      const user = action.payload.currentUser;
+      const activity = action.payload.activity as Activity;
+      console.log("activity: " + activity);
       if (user) {
         activity.isGoing = activity.attendees!.some(
           (a) => a.username === user.username
@@ -160,10 +179,10 @@ export const activitiesSlice = createSlice({
       }
 
       activity.date = new Date(activity.date!);
-      state.activityRegistry.set(activity.id, activity);
+      state.activityRegistry[activity.id] = activity;
     },
     updateAttendeeFollowing: (state, action) => {
-      state.activityRegistry.forEach((activity) => {
+      Object.values(state.activityRegistry).forEach((activity) => {
         activity.attendees.forEach((attendee) => {
           if (attendee.username === action.payload) {
             attendee.following
@@ -179,53 +198,61 @@ export const activitiesSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    builder.addCase(loadActivitiesAsync.pending, (state, action) => {
+      console.log("loadActivitiesAsync.pending");
+      state.loadingInitial = true;
+    });
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
-      // setLoadingNext(false);
-      console.log(action.payload.data);
-      action.payload.data.forEach((activity) => {
-        setActivity(activity);
-      });
+      console.log("loadActivitiesAsync.fulfilled");
+      state.pagination = action.payload.pagination;
+      state.loadingInitial = false;
+    });
+    builder.addCase(loadActivitiesAsync.rejected, (state, action) => {
+      console.log("loadActivitiesAsync.rejected");
+      state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.pending, (state, action) => {});
     builder.addCase(loadActivityAsync.fulfilled, (state, action) => {
+      // const { user } = useAppSelector((state) => state.user);
       const activity = action.payload;
-      setActivity(activity);
+      // setActivity({ activity, currentUser: user });
       state.selectedActivity = activity;
-      setLoadingInitial(false);
+      state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.rejected, (state, action) => {
-      setLoadingInitial(false);
+      state.loadingInitial = false;
     });
     builder.addCase(createActivityAsync.fulfilled, (state, action) => {
-      const { user } = useAppSelector((state) => state.user);
-      const attendee = new Profile(user!);
-      const newActivity = action.payload;
-      newActivity.hostUsername = user!.username;
-      newActivity.attendees = [attendee];
-      setActivity(newActivity);
-      state.selectedActivity = newActivity;
+      // const { user } = useAppSelector((state) => state.user);
+      // const attendee = new Profile(user!);
+      // const newActivity = action.payload;
+      // newActivity.hostUsername = user!.username;
+      // newActivity.attendees = [attendee];
+      // setActivity({ activity: newActivity, currentUser: user });
+      state.selectedActivity = action.payload;
     });
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
       const activity = action.meta.arg.activity;
       if (activity.id) {
-        let oldActivity = state.activityRegistry.get(activity.id);
+        let oldActivity = state.activityRegistry[activity.id];
         let updatedActivity = {
           ...oldActivity,
           ...activity,
         };
-        state.activityRegistry.set(activity.id, updatedActivity as Activity);
+        state.activityRegistry[activity.id] = updatedActivity;
         state.selectedActivity = updatedActivity as Activity;
       }
     });
     builder.addCase(deleteActivityAsync.fulfilled, (state, action) => {
-      state.activityRegistry.delete(action.meta.arg.id);
+      delete state.activityRegistry[action.meta.arg.id];
       state.loading = false;
     });
     builder.addCase(deleteActivityAsync.rejected, (state, action) => {
       state.loading = false;
     });
-    builder.addCase(updateAttendanceAsync.fulfilled, (state) => {
-      const { user } = useAppSelector((state) => state.user);
+    builder.addCase(updateAttendanceAsync.fulfilled, (state, action) => {
+      // const { user } = useAppSelector((state) => state.user);
+      const user = action.meta.arg.currentUser;
       if (state.selectedActivity?.isGoing) {
         state.selectedActivity.attendees =
           state.selectedActivity.attendees?.filter(
@@ -237,10 +264,8 @@ export const activitiesSlice = createSlice({
         state.selectedActivity?.attendees?.push(attendee);
         state.selectedActivity!.isGoing = true;
       }
-      state.activityRegistry.set(
-        state.selectedActivity!.id,
-        state.selectedActivity!
-      );
+      state.activityRegistry[state.selectedActivity!.id] =
+        state.selectedActivity!;
     });
     builder.addCase(updateAttendanceAsync.rejected, (state) => {
       state.loading = false;
@@ -251,10 +276,9 @@ export const activitiesSlice = createSlice({
     builder.addCase(cancelActivityToggleAsync.fulfilled, (state) => {
       state.selectedActivity!.isCancelled =
         !state.selectedActivity?.isCancelled;
-      state.activityRegistry.set(
-        state.selectedActivity!.id,
-        state.selectedActivity!
-      );
+      state.activityRegistry[state.selectedActivity!.id] =
+        state.selectedActivity!;
+
       state.loading = false;
     });
     builder.addCase(cancelActivityToggleAsync.rejected, (state) => {
@@ -264,9 +288,9 @@ export const activitiesSlice = createSlice({
 });
 
 export const {
+  setLoadingInitial,
   setPagingParams,
   setActivity,
-  setLoadingInitial,
   updateAttendeeFollowing,
   clearSelectedActivity,
   setPredicate,

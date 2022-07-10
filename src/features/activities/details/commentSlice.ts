@@ -1,12 +1,13 @@
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { Activity } from "../../../app/models/activity";
 import { ChatComment } from "../../../app/models/comment";
-import { RootState, store } from "../../../app/store/configureStore";
-import { initialState } from "./commentState";
+import { RootState } from "../../../app/store/configureStore";
+import { CreateHubConnectionState, initialState } from "./commentState";
 
 export const addCommentAsync = createAsyncThunk<
   void,
-  { values: any },
+  { values: any; selectedActivity: Activity },
   { state: RootState }
 >("comment/addCommentAsync", async ({ values }, thunkAPI) => {
   try {
@@ -21,16 +22,17 @@ export const commentSlice = createSlice({
   name: "comment",
   initialState,
   reducers: {
-    createHubConnection: (state, action) => {
-      const activity = store.getState().activities.selectedActivity;
-      const user = store.getState().user.user;
-
+    createHubConnection: (
+      state,
+      action: PayloadAction<CreateHubConnectionState>
+    ) => {
+      const { activity, currentUser } = action.payload;
       if (activity) {
         state.hubConnection = new HubConnectionBuilder()
           .withUrl(
             process.env.REACT_APP_CHAT_URL + "?activityId=" + action.payload,
             {
-              accessTokenFactory: () => user?.token!,
+              accessTokenFactory: () => currentUser?.token!,
             }
           )
           .withAutomaticReconnect()
@@ -68,8 +70,8 @@ export const commentSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(addCommentAsync.pending, (state, action) => {
-      action.meta.arg.values.activityId =
-        store.getState().activities.selectedActivity?.id;
+      const selectedActivity = action.meta.arg.selectedActivity;
+      action.meta.arg.values.activityId = selectedActivity?.id;
     });
   },
 });

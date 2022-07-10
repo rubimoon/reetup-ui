@@ -1,5 +1,5 @@
 import { Container, Header, Segment } from "semantic-ui-react";
-import { useAppSelector } from "../../app/store/configureStore";
+import { useAppSelector } from "../../store/configureStore";
 
 const ServerError = () => {
   const error = useAppSelector((state) => state.common.error);

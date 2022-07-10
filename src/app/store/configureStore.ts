@@ -4,7 +4,7 @@ import { activitiesSlice } from "../../features/activities/activitySlice";
 import { commentSlice } from "../../features/activities/details/commentSlice";
 import { userSlice } from "../../features/users/userSlice";
 import { commonSlice } from "./commonSlice";
-import { modalSlice } from "./modalSlice";
+import { modalSlice } from "../common/modals/modalSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,10 +14,6 @@ export const store = configureStore({
     modal: modalSlice.reducer,
     comment: commentSlice.reducer,
   },
-  // middleware: (getDefaultMiddleware) =>
-  //   getDefaultMiddleware({
-  //     serializableCheck: false,
-  //   }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

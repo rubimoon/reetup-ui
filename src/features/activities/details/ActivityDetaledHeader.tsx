@@ -30,8 +30,18 @@ interface Props {
 
 const ActivityDetailedHeader = ({ activity }: Props) => {
   const { loading } = useAppSelector((state) => state.activities);
+  const currentUser = useAppSelector((state) => state.user.user);
 
   const dispatch = useAppDispatch();
+
+  const handleUpdateAttendanceAsync = () => {
+    if (currentUser) dispatch(updateAttendanceAsync({ currentUser }));
+  };
+
+  const handleDeleteActivity = () => {
+    dispatch(cancelActivityToggleAsync());
+  };
+
   return (
     <Segment.Group>
       <Segment basic attached="top" style={{ padding: "0" }}>
@@ -83,9 +93,7 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
                   ? "Re-activate Activity"
                   : "Cancel Activity"
               }
-              onClick={() => {
-                dispatch(cancelActivityToggleAsync());
-              }}
+              onClick={handleDeleteActivity}
               loading={loading}
             />
             <Button
@@ -99,17 +107,14 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
             </Button>
           </>
         ) : activity.isGoing ? (
-          <Button
-            loading={loading}
-            onClick={() => dispatch(updateAttendanceAsync)}
-          >
+          <Button loading={loading} onClick={handleUpdateAttendanceAsync}>
             Cancel attendance
           </Button>
         ) : (
           <Button
             disabled={activity.isCancelled}
             loading={loading}
-            onClick={() => dispatch(updateAttendanceAsync)}
+            onClick={handleUpdateAttendanceAsync}
             color="teal"
           >
             Join Activity
