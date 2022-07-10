@@ -3,6 +3,7 @@ import { useAppSelector } from "../../store/configureStore";
 
 const ServerError = () => {
   const error = useAppSelector((state) => state.common.error);
+
   return (
     <Container>
       <Header as="h1" content="Server Error" />

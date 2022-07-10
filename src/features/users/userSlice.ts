@@ -5,13 +5,18 @@ import { initialState } from "./userState";
 import { setToken } from "../../app/store/commonSlice";
 import { RootState } from "../../app/store/configureStore";
 
-export const loginAsync = createAsyncThunk<User, { creds: UserFormValues }>(
+export const loginAsync = createAsyncThunk<User, UserFormValues>(
   "user/loginAsync",
-  async ({ creds }, thunkAPI) => {
+  async (creds, thunkAPI) => {
     try {
-      return await agent.Account.login(creds);
+      const user = await agent.Account.login(creds);
+
+      thunkAPI.dispatch(setToken(user?.token));
+      thunkAPI.dispatch(startRefreshTokenTimer(user));
+
+      return user;
     } catch (error: any) {
-      console.log(error);
+      console.log("error is ", error);
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }
@@ -31,7 +36,6 @@ export const refreshTokenAsync = createAsyncThunk<User>(
 export const getCurrentUserAysnc = createAsyncThunk<User>(
   "user/getCurrentUserAysnc",
   async (_, thunkAPI) => {
-    console.log("getCurrentUserAysnc is called");
     try {
       const currentUser = await agent.Account.current();
       if (currentUser) {
@@ -109,6 +113,7 @@ export const userSlice = createSlice({
       state.user = action.payload;
 
       // closeModal();
+      console.log("loginAsync.fulfilled");
       // history.push("/activities");
     });
     builder.addCase(loginAsync.rejected, (state, action) => {

@@ -1,17 +1,15 @@
 import { ErrorMessage, Form, Formik } from "formik";
 import { Button, Header, Label } from "semantic-ui-react";
 import MyTextInput from "../../app/common/form/MyTextInput";
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { useAppDispatch } from "../../app/store/configureStore";
 import { loginAsync } from "./userSlice";
 import * as Yup from "yup";
 import ModalWrapper from "../../app/common/modals/ModalWrapper";
 import { closeModal } from "../../app/common/modals/modalSlice";
 import { history } from "../..";
-import { setToken } from "../../app/store/commonSlice";
 
 const LoginForm = () => {
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector((state) => state.user.user);
 
   return (
     <ModalWrapper>
@@ -22,13 +20,9 @@ const LoginForm = () => {
           password: Yup.string().required(),
         })}
         onSubmit={async (values, { setErrors }) => {
-          dispatch(loginAsync({ creds: values })).catch((error) => {
+          dispatch(loginAsync(values)).catch((error) => {
             setErrors(error);
           });
-          if (currentUser) {
-            console.log("setToken:", currentUser.token);
-            dispatch(setToken(currentUser.token));
-          }
           dispatch(closeModal());
           history.push("/activities");
         }}

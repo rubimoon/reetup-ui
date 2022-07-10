@@ -1,11 +1,12 @@
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { format } from "date-fns";
 import agent from "../../app/api/agent";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult } from "../../app/models/pagination";
 import { Profile } from "../../app/models/profile";
 import { User } from "../../app/models/user";
 import { RootState } from "../../app/store/configureStore";
-import { initialState, SetActivityState } from "./activityState";
+import { initialState } from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
@@ -13,25 +14,27 @@ export const loadActivitiesAsync = createAsyncThunk<
   { state: RootState }
 >("activities/loadActivitiesAsync", async (_, thunkAPI) => {
   const { pagingParams, predicate } = thunkAPI.getState().activities;
+  const params = new URLSearchParams();
+  params.append("pageNumber", pagingParams.pageNumber!.toString());
+  params.append("pageSize", pagingParams.pageSize!.toString());
+  Object.entries(predicate).forEach((value) => {
+    if (value[0] === "startDate") {
+      params.append(value[0], (value[1] as Date).toISOString());
+    } else {
+      params.append(value[0], value[1]);
+    }
+  });
+
   try {
-    const params = new URLSearchParams();
-    params.append("pageNumber", pagingParams.pageNumber!.toString());
-    params.append("pageSize", pagingParams.pageSize!.toString());
-    Object.entries(predicate).forEach((value) => {
-      if (value[0] === "startDate") {
-        params.append(value[0], (value[1] as Date).toISOString());
-      } else {
-        params.append(value[0], value[1]);
-      }
-    });
     const result = await agent.Activities.list(params);
     const currentUser = thunkAPI.getState().user.user;
     console.log("result: " + result);
-    result.data.forEach((activity) =>
-      thunkAPI.dispatch(setActivity({ activity, currentUser }))
-    );
+    result.data.forEach((activity) => {
+      thunkAPI.dispatch(setActivity({ activity, currentUser }));
+    });
     return result;
   } catch (error: any) {
+    console.log("error is ", error);
     return thunkAPI.rejectWithValue({ error: error.data });
   }
 });
@@ -172,8 +175,9 @@ export const activitiesSlice = createSlice({
     setPagination: (state, action) => {
       state.pagination = action.payload;
     },
-    setActivity: (state, action: PayloadAction<SetActivityState>) => {
-      const user = action.payload.currentUser;
+
+    setActivity: (state, action) => {
+      const user = action.payload.user;
       const activity = action.payload.activity as Activity;
       console.log("activity: " + activity);
       if (user) {
@@ -187,6 +191,7 @@ export const activitiesSlice = createSlice({
       }
 
       activity.date = new Date(activity.date!);
+
       state.activityRegistry[activity.id] = activity;
     },
     updateAttendeeFollowing: (state, action) => {
@@ -302,4 +307,5 @@ export const {
   updateAttendeeFollowing,
   clearSelectedActivity,
   setPredicate,
+  setPagination,
 } = activitiesSlice.actions;

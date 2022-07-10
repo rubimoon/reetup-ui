@@ -12,7 +12,6 @@ export default function useActivities() {
   const [groupedActivities, setGroupedActivities] = useState<
     [string, Activity[]][]
   >([]);
-
   const dispatch = useAppDispatch();
 
   const handleGetNext = () => {
@@ -23,7 +22,9 @@ export default function useActivities() {
   };
 
   useEffect(() => {
-    dispatch(loadActivitiesAsync());
+    if (Object.keys(activityRegistry).length <= 1)
+      dispatch(loadActivitiesAsync());
+
     const activitiesByDate = Object.values(activityRegistry).sort(
       (a, b) => a.date!.getTime() - b.date!.getTime()
     );

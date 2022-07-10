@@ -23,15 +23,20 @@ const App = () => {
     if (token) {
       console.log("token is ", token);
       console.log("user has token in the browser");
-      dispatch(getCurrentUserAysnc()).catch((err) => {
-        console.log(err);
-      });
+      dispatch(getCurrentUserAysnc())
+        .catch((err) => {
+          console.log(err);
+        })
+        .then(() => {
+          dispatch(setAppLoaded());
+        });
     } else {
       console.log("user doesn't have token the browser");
-      dispatch(getFacebookLoginStatusAsync());
+      dispatch(getFacebookLoginStatusAsync()).then(() => {
+        dispatch(setAppLoaded());
+      });
     }
-    dispatch(setAppLoaded());
-  }, [currentUser, dispatch, token]);
+  }, [dispatch, token]);
 
   if (!appLoaded) return <LoadingComponent content="Loading app..." />;
 

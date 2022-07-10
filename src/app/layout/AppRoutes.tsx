@@ -20,7 +20,15 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/activities" element={<ActivityDashboard />} />
+      <Route
+        path="/activities"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isLoggedIn}
+            outlet={<ActivityDashboard />}
+          />
+        }
+      />
       <Route
         path="/activities/:id"
         element={

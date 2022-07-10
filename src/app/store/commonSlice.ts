@@ -18,6 +18,7 @@ export const commonSlice = createSlice({
   initialState,
   reducers: {
     setToken: (state, action) => {
+      console.log("set user token: ", action.payload);
       state.token = action.payload;
     },
     setServerError: (state, action) => {
