@@ -9,24 +9,32 @@ import { initialState, SetActivityState } from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
-  { params: URLSearchParams },
+  void,
   { state: RootState }
->(
-  "activities/loadActivitiesAsync",
-  async ({ params }, { getState, rejectWithValue, dispatch }) => {
-    try {
-      const result = await agent.Activities.list(params);
-      const currentUser = getState().user.user;
-      console.log("result: " + result);
-      result.data.forEach((activity) =>
-        dispatch(setActivity({ activity, currentUser }))
-      );
-      return result;
-    } catch (error: any) {
-      return rejectWithValue({ error: error.data });
-    }
+>("activities/loadActivitiesAsync", async (_, thunkAPI) => {
+  const { pagingParams, predicate } = thunkAPI.getState().activities;
+  try {
+    const params = new URLSearchParams();
+    params.append("pageNumber", pagingParams.pageNumber!.toString());
+    params.append("pageSize", pagingParams.pageSize!.toString());
+    Object.entries(predicate).forEach((value) => {
+      if (value[0] === "startDate") {
+        params.append(value[0], (value[1] as Date).toISOString());
+      } else {
+        params.append(value[0], value[1]);
+      }
+    });
+    const result = await agent.Activities.list(params);
+    const currentUser = thunkAPI.getState().user.user;
+    console.log("result: " + result);
+    result.data.forEach((activity) =>
+      thunkAPI.dispatch(setActivity({ activity, currentUser }))
+    );
+    return result;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue({ error: error.data });
   }
-);
+});
 
 export const loadActivityAsync = createAsyncThunk<
   Activity,

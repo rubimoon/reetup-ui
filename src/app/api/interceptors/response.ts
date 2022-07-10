@@ -50,6 +50,7 @@ const responseError = (error: AxiosError<ResponseError>) => {
 
 const addPagination = (pagination: any, response: AxiosResponse<any>) => {
   response.data = new PaginatedResult(response.data, JSON.parse(pagination));
+  response.data = {};
   return response as AxiosResponse<PaginatedResult<any>>;
 };
 

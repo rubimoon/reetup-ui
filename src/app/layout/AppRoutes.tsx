@@ -9,6 +9,7 @@ import RegisterSuccess from "../../features/users/RegisterSuccess";
 import ConfirmEmail from "../../features/users/ConfirmEmail";
 import ServerError from "../errors/ui/ServerError";
 import TestErrors from "../errors/ui/TestError";
+import ProfilePage from "../../features/profiles/layout/ProfilePage";
 
 interface Props {
   location: any;
@@ -53,22 +54,9 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
       <Route path="/server-error" element={<ServerError />} />
       <Route path="/account/registerSuccess" element={<RegisterSuccess />} />
       <Route path="/account/verifyEmail" element={<ConfirmEmail />} />
+      <Route path="/profiles/:username" element={<ProfilePage />} />
       <Route path="not-found" element={<NotFound />} />
-
-      {/* <PrivateRoute
-          path="/profiles/:username"
-          element={
-            <ProtectedRoute
-              isAuthenticated={isLoggedIn}
-              outlet={<ProfilePage />}
-            />
-          }
-        /> */}
-      {/* 
-      
-
-      
-        <Route element={NotFound} /> */}
+      <Route element={<NotFound />} /> */
     </Routes>
   );
 };

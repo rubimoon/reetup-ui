@@ -27,6 +27,7 @@ const App = () => {
         console.log(err);
       });
     } else {
+      console.log("user doesn't have token the browser");
       dispatch(getFacebookLoginStatusAsync());
     }
     dispatch(setAppLoaded());

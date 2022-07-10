@@ -1,7 +1,7 @@
 import { HubConnection } from "@microsoft/signalr";
-import { Activity } from "../../../app/models/activity";
-import { ChatComment } from "../../../app/models/comment";
-import { User } from "../../../app/models/user";
+import { Activity } from "../../../../app/models/activity";
+import { ChatComment } from "../../../../app/models/comment";
+import { User } from "../../../../app/models/user";
 
 interface CommentState {
   comments: ChatComment[];

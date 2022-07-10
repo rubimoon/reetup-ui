@@ -1,10 +1,14 @@
 import Calendar from "react-calendar";
 import { Header, Menu } from "semantic-ui-react";
-import { useAppSelector } from "../../../app/store/configureStore";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../../app/store/configureStore";
 import { setPredicate } from "../activitySlice";
 
 const ActivityFilters = () => {
   const { predicate } = useAppSelector((state) => state.activities);
+  const dispatch = useAppDispatch();
   return (
     <>
       <Menu vertical size="large" style={{ width: "100%", marginTop: 25 }}>
@@ -12,23 +16,31 @@ const ActivityFilters = () => {
         <Menu.Item
           content="All Activites"
           active={"all" in predicate}
-          onClick={() => setPredicate({ predicate: "all", value: "true" })}
+          onClick={() =>
+            dispatch(setPredicate({ predicate: "all", value: "true" }))
+          }
         />
         <Menu.Item
           content="I'm going"
           active={"isGoing" in predicate}
-          onClick={() => setPredicate({ predicate: "isGoing", value: "true" })}
+          onClick={() =>
+            dispatch(setPredicate({ predicate: "isGoing", value: "true" }))
+          }
         />
         <Menu.Item
           content="I'm hosting"
           active={"isHost" in predicate}
-          onClick={() => setPredicate({ predicate: "isHost", value: "true" })}
+          onClick={() =>
+            dispatch(setPredicate({ predicate: "isHost", value: "true" }))
+          }
         />
       </Menu>
       <Header />
       <Calendar
         onChange={(date: any) =>
-          setPredicate({ predicate: "startDate", value: date as Date })
+          dispatch(
+            setPredicate({ predicate: "startDate", value: date as Date })
+          )
         }
         value={predicate["startDate"] || new Date()}
       />

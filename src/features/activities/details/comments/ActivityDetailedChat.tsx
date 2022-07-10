@@ -13,8 +13,8 @@ import {
 import {
   useAppDispatch,
   useAppSelector,
-} from "../../../app/store/configureStore";
-import { Activity } from "../../../app/models/activity";
+} from "../../../../app/store/configureStore";
+import { Activity } from "../../../../app/models/activity";
 
 interface Props {
   activity: Activity;

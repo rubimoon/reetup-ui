@@ -1,8 +1,8 @@
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Activity } from "../../../app/models/activity";
-import { ChatComment } from "../../../app/models/comment";
-import { RootState } from "../../../app/store/configureStore";
+import { Activity } from "../../../../app/models/activity";
+import { ChatComment } from "../../../../app/models/comment";
+import { RootState } from "../../../../app/store/configureStore";
 import { CreateHubConnectionState, initialState } from "./commentState";
 
 export const addCommentAsync = createAsyncThunk<

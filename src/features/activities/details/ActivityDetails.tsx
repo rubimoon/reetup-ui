@@ -7,7 +7,7 @@ import {
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { clearSelectedActivity, loadActivityAsync } from "../activitySlice";
-import ActivityDetailedChat from "./ActivityDetailedChat";
+import ActivityDetailedChat from "./comments/ActivityDetailedChat";
 import ActivityDetailedInfo from "./ActivityDetailedInfo";
 import ActivityDetailedSidebar from "./ActivityDetailedSidebar";
 import ActivityDetailedHeader from "./ActivityDetaledHeader";
