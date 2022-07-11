@@ -1,13 +1,12 @@
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { toast } from "react-toastify";
+import axios from "axios";
 import { delay } from "../common/utils";
 import { PaginatedResult } from "../models/pagination";
 import { store } from "../store/configureStore";
 import { Account, Activities, Profiles } from "./requests";
-import { history } from "../..";
-import { setServerError } from "../store/commonSlice";
+
 // axios.defaults.baseURL = process.env.REACT_APP_API_URL;
 axios.defaults.baseURL = "http://localhost:5001/api";
+
 axios.interceptors.request.use((config) => {
   const token = store.getState().common.token;
   if (token && config.headers) {
@@ -17,25 +16,15 @@ axios.interceptors.request.use((config) => {
   return config;
 });
 
-// axios.interceptors.response.use(async (response) => {
-//   if (process.env.NODE_ENV === "development") await delay(1000);
-//   const pagination = response.headers["pagination"];
-//   if (pagination) {
-//     response.data = new PaginatedResult(response.data, JSON.parse(pagination));
-//     return response as AxiosResponse<PaginatedResult<any>>;
-//   }
-//   return response;
-// });
-
 axios.interceptors.response.use(
   async (response) => {
     if (process.env.NODE_ENV === "development") await delay(100);
     const pagination = response.headers["pagination"];
     if (pagination) {
-      response.data = new PaginatedResult(
-        response.data,
-        JSON.parse(pagination)
-      );
+      response.data = {
+        data: response.data,
+        pagination: JSON.parse(pagination),
+      };
       return response;
     }
     return response;

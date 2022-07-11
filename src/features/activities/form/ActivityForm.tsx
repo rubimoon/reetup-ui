@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, Header, Segment } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
@@ -27,9 +27,19 @@ const ActivityForm = () => {
   const { id } = useParams<{ id: string }>();
 
   const { loadingInitial } = useAppSelector((state) => state.activities);
-  const [formValues, setFormValues] = useState<ActivityFormValues>(
-    new ActivityFormValues()
+  const initialFormValues = useMemo<ActivityFormValues>(
+    () => ({
+      title: "",
+      category: "",
+      description: "",
+      date: null,
+      city: "",
+      venue: "",
+    }),
+    []
   );
+  const [formValues, setFormValues] =
+    useState<ActivityFormValues>(initialFormValues);
 
   const validationSchema = Yup.object({
     title: Yup.string().required("The activity title is required"),
@@ -43,23 +53,22 @@ const ActivityForm = () => {
   useEffect(() => {
     if (id) {
       dispatch(loadActivityAsync({ id })).then(() => {
-        setFormValues(new ActivityFormValues());
+        setFormValues(initialFormValues);
       });
     }
-  }, [dispatch, id]);
+  }, [dispatch, id, initialFormValues]);
 
-  function handleFormSubmit(activity: ActivityFormValues) {
-    if (!activity.id) {
+  function handleFormSubmit(formValues: ActivityFormValues) {
+    if (!formValues.id) {
       let newActivity = {
-        ...activity,
+        ...formValues,
         id: uuid(),
       };
-      dispatch(createActivityAsync({ activity: newActivity })).then(() =>
-        history.push(`/activities/${newActivity.id}`)
-      );
+      dispatch(createActivityAsync(newActivity));
+      history.push(`/activities/${newActivity.id}`);
     } else {
-      dispatch(updateActivityAsync({ activity })).then(() =>
-        history.push(`/activities/${activity.id}`)
+      dispatch(updateActivityAsync(formValues)).then(() =>
+        history.push(`/activities/${formValues.id}`)
       );
     }
   }
