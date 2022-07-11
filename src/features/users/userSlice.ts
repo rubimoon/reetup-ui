@@ -10,8 +10,7 @@ export const loginAsync = createAsyncThunk<User, UserFormValues>(
   async (creds, thunkAPI) => {
     try {
       const user = await agent.Account.login(creds);
-
-      thunkAPI.dispatch(setToken(user?.token));
+      thunkAPI.dispatch(setToken(user.token));
       thunkAPI.dispatch(startRefreshTokenTimer(user));
 
       return user;
@@ -39,12 +38,8 @@ export const getCurrentUserAysnc = createAsyncThunk<User>(
     try {
       const currentUser = await agent.Account.current();
       if (currentUser) {
-        console.log("user is logged in");
         thunkAPI.dispatch(setToken(currentUser.token));
         thunkAPI.dispatch(startRefreshTokenTimer(currentUser));
-        console.log("current user token is ", currentUser.token);
-      } else {
-        console.log("user is not logged in");
       }
       return currentUser;
     } catch (error: any) {

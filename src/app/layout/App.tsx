@@ -21,8 +21,7 @@ const App = () => {
 
   useEffect(() => {
     if (token) {
-      console.log("token is ", token);
-      console.log("user has token in the browser");
+      window.localStorage.setItem("jwt", token);
       dispatch(getCurrentUserAysnc())
         .catch((err) => {
           console.log(err);
@@ -31,7 +30,7 @@ const App = () => {
           dispatch(setAppLoaded());
         });
     } else {
-      console.log("user doesn't have token the browser");
+      window.localStorage.removeItem("jwt");
       dispatch(getFacebookLoginStatusAsync()).then(() => {
         dispatch(setAppLoaded());
       });
