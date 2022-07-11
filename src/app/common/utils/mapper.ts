@@ -14,3 +14,6 @@ export const mapUserToProfile = (user: User): Profile => ({
   following: false,
   image: user!.image,
 });
+
+export const mapActivityToActivityFormValues = (activity: Activity) =>
+  Object.assign({}, activity) as ActivityFormValues;

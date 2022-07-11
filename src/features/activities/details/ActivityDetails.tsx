@@ -14,30 +14,29 @@ import ActivityDetailedHeader from "./ActivityDetaledHeader";
 
 const ActivityDetails = () => {
   const dispatch = useAppDispatch();
-  const { selectedActivity: activity, loadingInitial } = useAppSelector(
+  const { selectedActivity, loadingInitial } = useAppSelector(
     (state) => state.activities
   );
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    // TODO
-    if (id) {
-      dispatch(loadActivityAsync(id));
-    }
-    clearSelectedActivity();
+    if (id) dispatch(loadActivityAsync(id));
+    return () => {
+      dispatch(clearSelectedActivity());
+    };
   }, [id, dispatch]);
 
-  if (loadingInitial || !activity) return <LoadingComponent />;
+  if (loadingInitial || !selectedActivity) return <LoadingComponent />;
 
   return (
     <Grid>
       <Grid.Column width={10}>
-        <ActivityDetailedHeader activity={activity} />
-        <ActivityDetailedInfo activity={activity} />
-        <ActivityDetailedChat activity={activity} />
+        <ActivityDetailedHeader activity={selectedActivity} />
+        <ActivityDetailedInfo activity={selectedActivity} />
+        <ActivityDetailedChat activity={selectedActivity} />
       </Grid.Column>
       <Grid.Column width={6}>
-        <ActivityDetailedSidebar activity={activity} />
+        <ActivityDetailedSidebar activity={selectedActivity} />
       </Grid.Column>
     </Grid>
   );

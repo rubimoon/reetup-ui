@@ -42,26 +42,27 @@ export const loadActivitiesAsync = createAsyncThunk<
 });
 
 export const loadActivityAsync = createAsyncThunk<
-  Activity,
+  void,
   string,
   { state: RootState }
 >(
   "activities/loadActivityAsync",
   async (id, { rejectWithValue, dispatch, getState }) => {
+    dispatch(setLoadingInitial(true));
+    const currentUser = getState().user.user!;
     try {
-      const currentUser = getState().user.user!;
       const activity = await agent.Activities.details(id);
       dispatch(setActivity({ activity, currentUser }));
-      return activity;
+      dispatch(setSelectedActivity(activity));
+      return;
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
   },
   {
     condition: (id, thunkAPI) => {
-      const { activityRegistry } = thunkAPI.getState().activities;
-      const activity = activityRegistry[id];
-      return !activity;
+      const { selectedActivity } = thunkAPI.getState().activities;
+      return !selectedActivity;
     },
   }
 );
@@ -140,6 +141,9 @@ export const activitiesSlice = createSlice({
   name: "activities",
   initialState,
   reducers: {
+    setSelectedActivity: (state, action) => {
+      state.selectedActivity = action.payload;
+    },
     setLoadingInitial: (state, action) => {
       state.loadingInitial = action.payload;
     },
@@ -217,32 +221,25 @@ export const activitiesSlice = createSlice({
       state.loadingInitial = true;
     });
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
-      console.log("loadActivitiesAsync.fulfilled");
       state.pagination = action.payload.pagination;
       state.loadingInitial = false;
     });
-    builder.addCase(loadActivitiesAsync.rejected, (state, action) => {
-      console.log("loadActivitiesAsync.rejected");
+    builder.addCase(loadActivitiesAsync.rejected, (state) => {
       state.loadingInitial = false;
     });
-    builder.addCase(loadActivityAsync.pending, (state, action) => {});
+    builder.addCase(loadActivityAsync.pending, (state, action) => {
+      const activity = state.activityRegistry[action.meta.arg];
+      if (activity) {
+        state.selectedActivity = activity;
+      }
+    });
     builder.addCase(loadActivityAsync.fulfilled, (state, action) => {
-      // const { user } = useAppSelector((state) => state.user);
-      const activity = action.payload;
-      // setActivity({ activity, currentUser: user });
-      state.selectedActivity = activity;
       state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.rejected, (state, action) => {
       state.loadingInitial = false;
     });
     builder.addCase(createActivityAsync.fulfilled, (state, action) => {
-      // const { user } = useAppSelector((state) => state.user);
-      // const attendee = new Profile(user!);
-      // const newActivity = action.payload;
-      // newActivity.hostUsername = user!.username;
-      // newActivity.attendees = [attendee];
-      // setActivity({ activity: newActivity, currentUser: user });
       state.selectedActivity = action.payload;
     });
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
@@ -265,7 +262,6 @@ export const activitiesSlice = createSlice({
       state.loading = false;
     });
     builder.addCase(updateAttendanceAsync.fulfilled, (state, action) => {
-      // const { user } = useAppSelector((state) => state.user);
       const user = action.meta.arg.currentUser;
       if (state.selectedActivity?.isGoing) {
         state.selectedActivity.attendees =
@@ -303,6 +299,7 @@ export const activitiesSlice = createSlice({
 
 export const {
   setLoadingInitial,
+  setSelectedActivity,
   setPagingParams,
   setActivity,
   updateAttendeeFollowing,

@@ -21,12 +21,15 @@ import {
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { history } from "../../..";
+import { mapActivityToActivityFormValues } from "../../../app/common/utils/mapper";
 
 const ActivityForm = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
 
-  const { loadingInitial } = useAppSelector((state) => state.activities);
+  const { loadingInitial, selectedActivity } = useAppSelector(
+    (state) => state.activities
+  );
   const initialFormValues = useMemo<ActivityFormValues>(
     () => ({
       title: "",
@@ -52,11 +55,13 @@ const ActivityForm = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(loadActivityAsync(id)).then(() => {
-        setFormValues(initialFormValues);
-      });
+      dispatch(loadActivityAsync(id));
+      const formValues = mapActivityToActivityFormValues(selectedActivity!);
+      setFormValues(formValues);
+    } else {
+      setFormValues(initialFormValues);
     }
-  }, [dispatch, id, initialFormValues]);
+  }, [dispatch, id, initialFormValues, selectedActivity]);
 
   function handleFormSubmit(formValues: ActivityFormValues) {
     if (!formValues.id) {
