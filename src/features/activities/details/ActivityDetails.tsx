@@ -22,7 +22,7 @@ const ActivityDetails = () => {
   useEffect(() => {
     // TODO
     if (id) {
-      dispatch(loadActivityAsync({ id }));
+      dispatch(loadActivityAsync(id));
     }
     clearSelectedActivity();
   }, [id, dispatch]);

@@ -33,7 +33,7 @@ export default function ActivityListItem({ activity }: Props) {
                 {activity.title}
               </Item.Header>
               <Item.Description>
-                Hosted by{" "}
+                Hosted by
                 <Link to={`/profiles/${activity.hostUsername}`}>
                   {activity.host?.displayName}
                 </Link>
@@ -58,7 +58,8 @@ export default function ActivityListItem({ activity }: Props) {
       </Segment>
       <Segment>
         <span>
-          <Icon name="clock" /> {format(activity.date!, "dd MMM yyyy h:mm aa")}
+          <Icon name="clock" />{" "}
+          {format(new Date(activity.date!), "dd MMM yyyy h:mm aa")}
           <Icon name="marker" /> {activity.venue}
         </span>
       </Segment>

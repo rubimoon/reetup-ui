@@ -1,5 +1,3 @@
-import { User } from "./user";
-
 export interface Profile {
   username: string;
   displayName: string;
@@ -21,5 +19,5 @@ export interface UserActivity {
   id: string;
   title: string;
   category: string;
-  date: Date;
+  date: string;
 }

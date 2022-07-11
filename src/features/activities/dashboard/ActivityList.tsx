@@ -7,7 +7,6 @@ interface Props {
   groupedActivities: [string, Activity[]][];
 }
 const ActivityList = ({ groupedActivities }: Props) => {
-  console.log("groupedActivities", groupedActivities);
   return (
     <>
       {groupedActivities.map(([group, activities]) => (

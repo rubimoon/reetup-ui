@@ -25,13 +25,13 @@ export default function useActivities() {
     if (Object.keys(activityRegistry).length <= 1)
       dispatch(loadActivitiesAsync());
 
-    const activitiesByDate = Object.values(activityRegistry).sort(
-      (a, b) => a.date!.getTime() - b.date!.getTime()
-    );
+    const activitiesByDate = Object.values(activityRegistry).sort((a, b) => {
+      return new Date(a.date!).getTime() - new Date(b.date!).getTime();
+    });
 
     const arr = Object.entries(
       activitiesByDate.reduce((activities, activity) => {
-        const date = format(activity.date!, "dd MMM yyyy");
+        const date = format(new Date(activity.date!), "dd MMM yyyy");
         activities[date] = activities[date]
           ? [...activities[date], activity]
           : [activity];

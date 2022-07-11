@@ -1,9 +1,11 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { format } from "date-fns";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import agent from "../../app/api/agent";
+import {
+  mapActivityFormValueToActivity,
+  mapUserToProfile,
+} from "../../app/common/utils/mapper";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult } from "../../app/models/pagination";
-import { Profile } from "../../app/models/profile";
 import { User } from "../../app/models/user";
 import { RootState } from "../../app/store/configureStore";
 import { initialState } from "./activityState";
@@ -27,7 +29,7 @@ export const loadActivitiesAsync = createAsyncThunk<
 
   try {
     const result = await agent.Activities.list(params);
-    const currentUser = thunkAPI.getState().user.user;
+    const currentUser = thunkAPI.getState().user.user!;
     console.log("result: " + result);
     result.data.forEach((activity) => {
       thunkAPI.dispatch(setActivity({ activity, currentUser }));
@@ -41,13 +43,13 @@ export const loadActivitiesAsync = createAsyncThunk<
 
 export const loadActivityAsync = createAsyncThunk<
   Activity,
-  { id: string },
+  string,
   { state: RootState }
 >(
   "activities/loadActivityAsync",
-  async ({ id }, { rejectWithValue, dispatch, getState }) => {
+  async (id, { rejectWithValue, dispatch, getState }) => {
     try {
-      const currentUser = getState().user.user;
+      const currentUser = getState().user.user!;
       const activity = await agent.Activities.details(id);
       dispatch(setActivity({ activity, currentUser }));
       return activity;
@@ -56,7 +58,7 @@ export const loadActivityAsync = createAsyncThunk<
     }
   },
   {
-    condition: ({ id }, thunkAPI) => {
+    condition: (id, thunkAPI) => {
       const { activityRegistry } = thunkAPI.getState().activities;
       const activity = activityRegistry[id];
       return !activity;
@@ -66,16 +68,16 @@ export const loadActivityAsync = createAsyncThunk<
 
 export const createActivityAsync = createAsyncThunk<
   Activity,
-  { activity: ActivityFormValues },
+  ActivityFormValues,
   { state: RootState }
 >(
   "activities/createActivityAsync",
-  async ({ activity }, { getState, rejectWithValue, dispatch }) => {
+  async (activity, { getState, rejectWithValue, dispatch }) => {
     try {
       await agent.Activities.create(activity);
-      const newActivity = new Activity(activity);
-      const currentUser = getState().user.user;
-      const attendee = new Profile(currentUser!);
+      const newActivity = mapActivityFormValueToActivity(activity);
+      const currentUser = getState().user.user!;
+      const attendee = mapUserToProfile(currentUser!);
       newActivity.hostUsername = currentUser!.username;
       newActivity.attendees = [attendee];
       dispatch(setActivity({ activity: newActivity, currentUser }));
@@ -86,12 +88,9 @@ export const createActivityAsync = createAsyncThunk<
   }
 );
 
-export const updateActivityAsync = createAsyncThunk<
-  void,
-  { activity: ActivityFormValues }
->(
+export const updateActivityAsync = createAsyncThunk<void, ActivityFormValues>(
   "activities/updateActivityAsync",
-  async ({ activity }, { rejectWithValue }) => {
+  async (activity, { rejectWithValue }) => {
     try {
       await agent.Activities.update(activity);
     } catch (error: any) {
@@ -130,8 +129,8 @@ export const cancelActivityToggleAsync = createAsyncThunk<
   { state: RootState }
 >("activities/cancelActivityToggleAsync", async (_, thunkAPI) => {
   try {
-    const { selectedActivity } = thunkAPI.getState().activities;
-    return await agent.Activities.attend(selectedActivity!.id);
+    const activity = thunkAPI.getState().activities.selectedActivity!;
+    return await agent.Activities.attend(activity.id);
   } catch (error: any) {
     return thunkAPI.rejectWithValue({ error: error.data });
   }
@@ -176,9 +175,12 @@ export const activitiesSlice = createSlice({
       state.pagination = action.payload;
     },
 
-    setActivity: (state, action) => {
-      const user = action.payload.user;
-      const activity = action.payload.activity as Activity;
+    setActivity: (
+      state,
+      action: PayloadAction<{ currentUser: User; activity: Activity }>
+    ) => {
+      const user = action.payload.currentUser;
+      const activity = action.payload.activity;
       console.log("activity: " + activity);
       if (user) {
         activity.isGoing = activity.attendees!.some(
@@ -190,8 +192,7 @@ export const activitiesSlice = createSlice({
         );
       }
 
-      activity.date = new Date(activity.date!);
-
+      activity.date = new Date(activity.date!).toISOString();
       state.activityRegistry[activity.id] = activity;
     },
     updateAttendeeFollowing: (state, action) => {
@@ -245,7 +246,7 @@ export const activitiesSlice = createSlice({
       state.selectedActivity = action.payload;
     });
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
-      const activity = action.meta.arg.activity;
+      const activity = action.meta.arg;
       if (activity.id) {
         let oldActivity = state.activityRegistry[activity.id];
         let updatedActivity = {
@@ -273,7 +274,7 @@ export const activitiesSlice = createSlice({
           );
         state.selectedActivity.isGoing = false;
       } else {
-        const attendee = new Profile(user!);
+        const attendee = mapUserToProfile(user!);
         state.selectedActivity?.attendees?.push(attendee);
         state.selectedActivity!.isGoing = true;
       }

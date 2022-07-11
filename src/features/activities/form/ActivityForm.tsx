@@ -52,7 +52,7 @@ const ActivityForm = () => {
 
   useEffect(() => {
     if (id) {
-      dispatch(loadActivityAsync({ id })).then(() => {
+      dispatch(loadActivityAsync(id)).then(() => {
         setFormValues(initialFormValues);
       });
     }
