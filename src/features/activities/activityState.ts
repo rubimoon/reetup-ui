@@ -11,6 +11,8 @@ export interface ActivityState {
   pagination: Pagination | null;
   pagingParams: PagingParams;
   predicate: { [key: string]: any };
+  startDate: string;
+  filter: { [key: string]: boolean };
 }
 
 export const initialState: ActivityState = {
@@ -25,6 +27,8 @@ export const initialState: ActivityState = {
     pageSize: 2,
   },
   predicate: { all: true },
+  startDate: "",
+  filter: {},
 };
 
 export interface SetActivityState {

@@ -14,7 +14,6 @@ const ActivityDashboard = () => {
     groupedActivities,
   } = useActivities();
 
-  console.log("loadingInitial");
   return (
     <Grid>
       <Grid.Column width="10">

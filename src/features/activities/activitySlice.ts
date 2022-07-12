@@ -20,17 +20,12 @@ export const loadActivitiesAsync = createAsyncThunk<
   params.append("pageNumber", pagingParams.pageNumber!.toString());
   params.append("pageSize", pagingParams.pageSize!.toString());
   Object.entries(predicate).forEach((value) => {
-    if (value[0] === "startDate") {
-      params.append(value[0], (value[1] as Date).toISOString());
-    } else {
-      params.append(value[0], value[1]);
-    }
+    params.append(value[0], value[1]);
   });
 
   try {
     const result = await agent.Activities.list(params);
     const currentUser = thunkAPI.getState().user.user!;
-    console.log("result: " + result);
     result.data.forEach((activity) => {
       thunkAPI.dispatch(setActivity({ activity, currentUser }));
     });
@@ -78,6 +73,7 @@ export const createActivityAsync = createAsyncThunk<
       await agent.Activities.create(activity);
       const newActivity = mapActivityFormValueToActivity(activity);
       const currentUser = getState().user.user!;
+      newActivity.date = new Date(newActivity.date!).toISOString();
       const attendee = mapUserToProfile(currentUser!);
       newActivity.hostUsername = currentUser!.username;
       newActivity.attendees = [attendee];
@@ -141,6 +137,12 @@ export const activitiesSlice = createSlice({
   name: "activities",
   initialState,
   reducers: {
+    setStartDate: (state, action) => {
+      state.startDate = action.payload;
+    },
+    setFilter: (state, action: PayloadAction<{ [key: string]: boolean }>) => {
+      state.filter = action.payload;
+    },
     setSelectedActivity: (state, action) => {
       state.selectedActivity = action.payload;
     },
@@ -150,7 +152,10 @@ export const activitiesSlice = createSlice({
     setPagingParams: (state, action) => {
       state.pagingParams.pageNumber = action.payload;
     },
-    setPredicate: (state, action) => {
+    setPredicate: (
+      state,
+      action: PayloadAction<{ predicate: string; value: string }>
+    ) => {
       const { predicate, value } = action.payload;
       const resetPredicate = () => {
         Object.keys(state.predicate).forEach((key) => {
@@ -183,20 +188,17 @@ export const activitiesSlice = createSlice({
       state,
       action: PayloadAction<{ currentUser: User; activity: Activity }>
     ) => {
-      const user = action.payload.currentUser;
-      const activity = action.payload.activity;
-      console.log("activity: " + activity);
-      if (user) {
+      const { currentUser, activity } = action.payload;
+      if (currentUser) {
         activity.isGoing = activity.attendees!.some(
-          (a) => a.username === user.username
+          (a) => a.username === currentUser.username
         );
-        activity.isHost = activity.hostUsername === user.username;
+        activity.isHost = activity.hostUsername === currentUser.username;
         activity.host = activity.attendees?.find(
           (x) => x.username === activity.hostUsername
         );
       }
 
-      activity.date = new Date(activity.date!).toISOString();
       state.activityRegistry[activity.id] = activity;
     },
     updateAttendeeFollowing: (state, action) => {

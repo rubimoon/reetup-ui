@@ -15,7 +15,6 @@ export const loginAsync = createAsyncThunk<User, UserFormValues>(
 
       return user;
     } catch (error: any) {
-      console.log("error is ", error);
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }
@@ -103,13 +102,7 @@ export const userSlice = createSlice({
       console.log("loginAsync.pending");
     });
     builder.addCase(loginAsync.fulfilled, (state, action) => {
-      // setToken(user.token);
-      // startRefreshTokenTimer(user);
       state.user = action.payload;
-
-      // closeModal();
-      console.log("loginAsync.fulfilled");
-      // history.push("/activities");
     });
     builder.addCase(loginAsync.rejected, (state, action) => {
       console.log("loginAsync.rejected");
@@ -118,13 +111,9 @@ export const userSlice = createSlice({
     builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
       const user = action.payload;
       state.user = user;
-      // setToken(user.token);
-      // startRefreshTokenTimer(user);
     });
     builder.addCase(getCurrentUserAysnc.fulfilled, (state, action) => {
-      // setToken(user.token);
       state.user = action.payload;
-      console.log(getCurrentUserAysnc.fulfilled);
     });
     builder.addCase(getCurrentUserAysnc.rejected, (state, action) => {
       console.log("getCurrentUserAysnc.rejected");
