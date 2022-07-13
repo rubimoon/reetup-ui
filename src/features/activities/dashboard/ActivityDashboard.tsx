@@ -9,7 +9,8 @@ const ActivityDashboard = () => {
   const {
     handleGetNext,
     loadingNext,
-    hasMore,
+    // hasMore,
+    pagination,
     loadingInitial,
     groupedActivities,
   } = useActivities();
@@ -26,7 +27,11 @@ const ActivityDashboard = () => {
           <InfiniteScroll
             pageStart={0}
             loadMore={handleGetNext}
-            hasMore={hasMore}
+            hasMore={
+              !loadingNext &&
+              !!pagination &&
+              pagination.currentPage < pagination.totalPages
+            }
             initialLoad={false}
           >
             <ActivityList groupedActivities={groupedActivities} />

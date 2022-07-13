@@ -5,9 +5,14 @@ import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { loadActivitiesAsync, setPagingParams } from "./activitySlice";
 
 export default function useActivities() {
-  const { activityRegistry, loadingInitial, pagination } = useAppSelector(
-    (state) => state.activities
-  );
+  const {
+    activityRegistry,
+    loadingInitial,
+    pagination,
+    pagingParams,
+    startDate,
+    filter,
+  } = useAppSelector((state) => state.activities);
   const [loadingNext, setLoadingNext] = useState(false);
   const [groupedActivities, setGroupedActivities] = useState<
     [string, Activity[]][]
@@ -17,14 +22,14 @@ export default function useActivities() {
   const handleGetNext = () => {
     setLoadingNext(true);
     dispatch(setPagingParams(pagination!.currentPage + 1));
-    dispatch(loadActivitiesAsync());
     setLoadingNext(false);
   };
 
   useEffect(() => {
-    if (Object.keys(activityRegistry).length <= 1)
-      dispatch(loadActivitiesAsync());
-
+    console.log("registry size", Object.keys(activityRegistry).length);
+    if (Object.keys(activityRegistry).length <= 1) {
+      dispatch(loadActivitiesAsync({ pagingParams, startDate, filter }));
+    }
     const activitiesByDate = Object.values(activityRegistry).sort((a, b) => {
       return new Date(a.date!).getTime() - new Date(b.date!).getTime();
     });
@@ -40,18 +45,13 @@ export default function useActivities() {
     );
     setGroupedActivities(arr);
     setLoadingNext(false);
-  }, [activityRegistry, dispatch]);
-
-  const hasMore =
-    !loadingNext &&
-    !!pagination &&
-    pagination.currentPage < pagination.totalPages;
+  }, [activityRegistry, dispatch, filter, pagingParams, startDate]);
 
   return {
     groupedActivities,
     handleGetNext,
     loadingNext,
-    hasMore,
+    pagination,
     loadingInitial,
   };
 }

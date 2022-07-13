@@ -5,36 +5,49 @@ import {
   mapUserToProfile,
 } from "../../app/common/utils/mapper";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
-import { PaginatedResult } from "../../app/models/pagination";
+import { PaginatedResult, PagingParams } from "../../app/models/pagination";
 import { User } from "../../app/models/user";
 import { RootState } from "../../app/store/configureStore";
-import { initialState } from "./activityState";
+import { ActivityFilter, initialState } from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
-  void,
+  { startDate: string; filter: ActivityFilter; pagingParams: PagingParams },
   { state: RootState }
->("activities/loadActivitiesAsync", async (_, thunkAPI) => {
-  const { pagingParams, predicate } = thunkAPI.getState().activities;
-  const params = new URLSearchParams();
-  params.append("pageNumber", pagingParams.pageNumber!.toString());
-  params.append("pageSize", pagingParams.pageSize!.toString());
-  Object.entries(predicate).forEach((value) => {
-    params.append(value[0], value[1]);
-  });
+>(
+  "activities/loadActivitiesAsync",
+  async ({ startDate = "", filter = "all", pagingParams }, thunkAPI) => {
+    const params = new URLSearchParams();
+    params.append("pageNumber", pagingParams.pageNumber!.toString());
+    params.append("pageSize", pagingParams.pageSize!.toString());
+    if (startDate) {
+      params.append("startDate", startDate);
+    } else {
+      switch (filter) {
+        case "isGoing":
+          params.append("isGoing", "true");
+          break;
+        case "isHost":
+          params.append("isHost", "true");
+          break;
+        default:
+          params.append("all", "true");
+      }
+    }
 
-  try {
-    const result = await agent.Activities.list(params);
     const currentUser = thunkAPI.getState().user.user!;
-    result.data.forEach((activity) => {
-      thunkAPI.dispatch(setActivity({ activity, currentUser }));
-    });
-    return result;
-  } catch (error: any) {
-    console.log("error is ", error);
-    return thunkAPI.rejectWithValue({ error: error.data });
+    try {
+      const result = await agent.Activities.list(params);
+      result.data.forEach((activity) => {
+        thunkAPI.dispatch(setActivity({ activity, currentUser }));
+      });
+      return result;
+    } catch (error: any) {
+      console.log("error is ", error);
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
   }
-});
+);
 
 export const loadActivityAsync = createAsyncThunk<
   void,
@@ -77,6 +90,7 @@ export const createActivityAsync = createAsyncThunk<
       const attendee = mapUserToProfile(currentUser!);
       newActivity.hostUsername = currentUser!.username;
       newActivity.attendees = [attendee];
+
       dispatch(setActivity({ activity: newActivity, currentUser }));
       return newActivity;
     } catch (error: any) {
@@ -139,9 +153,12 @@ export const activitiesSlice = createSlice({
   reducers: {
     setStartDate: (state, action) => {
       state.startDate = action.payload;
+      state.activityRegistry = {};
     },
-    setFilter: (state, action: PayloadAction<{ [key: string]: boolean }>) => {
+    setFilter: (state, action: PayloadAction<ActivityFilter>) => {
+      state.startDate = "";
       state.filter = action.payload;
+      state.activityRegistry = {};
     },
     setSelectedActivity: (state, action) => {
       state.selectedActivity = action.payload;
@@ -150,35 +167,8 @@ export const activitiesSlice = createSlice({
       state.loadingInitial = action.payload;
     },
     setPagingParams: (state, action) => {
+      state.activityRegistry = {};
       state.pagingParams.pageNumber = action.payload;
-    },
-    setPredicate: (
-      state,
-      action: PayloadAction<{ predicate: string; value: string }>
-    ) => {
-      const { predicate, value } = action.payload;
-      const resetPredicate = () => {
-        Object.keys(state.predicate).forEach((key) => {
-          if (key !== "startDate") delete state.predicate[key];
-        });
-      };
-      switch (predicate) {
-        case "all":
-          resetPredicate();
-          state.predicate["all"] = true;
-          break;
-        case "isGoing":
-          resetPredicate();
-          state.predicate["isGoing"] = true;
-          break;
-        case "isHost":
-          resetPredicate();
-          state.predicate["isHost"] = true;
-          break;
-        case "startDate":
-          delete state.predicate["startDate"];
-          state.predicate["startDate"] = value;
-      }
     },
     setPagination: (state, action) => {
       state.pagination = action.payload;
@@ -198,7 +188,6 @@ export const activitiesSlice = createSlice({
           (x) => x.username === activity.hostUsername
         );
       }
-
       state.activityRegistry[activity.id] = activity;
     },
     updateAttendeeFollowing: (state, action) => {
@@ -213,13 +202,16 @@ export const activitiesSlice = createSlice({
         });
       });
     },
+    clearFilter: (state) => {},
     clearSelectedActivity: (state) => {
       state.selectedActivity = undefined;
+    },
+    clearActivityRegistry: (state) => {
+      state.activityRegistry = {};
     },
   },
   extraReducers: (builder) => {
     builder.addCase(loadActivitiesAsync.pending, (state, action) => {
-      console.log("loadActivitiesAsync.pending");
       state.loadingInitial = true;
     });
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
@@ -231,6 +223,7 @@ export const activitiesSlice = createSlice({
     });
     builder.addCase(loadActivityAsync.pending, (state, action) => {
       const activity = state.activityRegistry[action.meta.arg];
+
       if (activity) {
         state.selectedActivity = activity;
       }
@@ -306,6 +299,8 @@ export const {
   setActivity,
   updateAttendeeFollowing,
   clearSelectedActivity,
-  setPredicate,
+  setStartDate,
+  setFilter,
   setPagination,
+  clearActivityRegistry,
 } = activitiesSlice.actions;

@@ -2,6 +2,8 @@ import { Activity } from "../../app/models/activity";
 import { Pagination, PagingParams } from "../../app/models/pagination";
 import { User } from "../../app/models/user";
 
+export type ActivityFilter = "all" | "isHost" | "isGoing";
+
 export interface ActivityState {
   activityRegistry: { [key: string]: Activity };
   selectedActivity: Activity | undefined;
@@ -12,7 +14,7 @@ export interface ActivityState {
   pagingParams: PagingParams;
   predicate: { [key: string]: any };
   startDate: string;
-  filter: { [key: string]: boolean };
+  filter: ActivityFilter;
 }
 
 export const initialState: ActivityState = {
@@ -28,7 +30,7 @@ export const initialState: ActivityState = {
   },
   predicate: { all: true },
   startDate: "",
-  filter: {},
+  filter: "all",
 };
 
 export interface SetActivityState {

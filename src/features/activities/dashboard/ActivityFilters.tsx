@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { useState } from "react";
 import Calendar from "react-calendar";
 import { Header, Menu } from "semantic-ui-react";
@@ -6,19 +5,17 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
-import { loadActivitiesAsync, setPredicate } from "../activitySlice";
+import { setFilter, setStartDate } from "../activitySlice";
 
 const ActivityFilters = () => {
-  const { predicate } = useAppSelector((state) => state.activities);
+  const { filter } = useAppSelector((state) => state.activities);
   const [dateValue, setDateValue] = useState<Date>(new Date());
   const dispatch = useAppDispatch();
 
-  const handleStartFilter = (date: any) => {
+  const handleStartDate = (date: any) => {
     setDateValue(new Date(date));
-    // const plainDate = format(dateValue, "yyyy-MM-dd");
     const plainDate = dateValue.toISOString();
-    dispatch(setPredicate({ predicate: "startDate", value: plainDate }));
-    dispatch(loadActivitiesAsync());
+    dispatch(setStartDate(plainDate));
   };
 
   return (
@@ -27,32 +24,29 @@ const ActivityFilters = () => {
         <Header icon="filter" attached color="teal" content="Filters" />
         <Menu.Item
           content="All Activites"
-          active={"all" in predicate}
+          active={filter === "all"}
           onClick={() => {
-            dispatch(setPredicate({ predicate: "all", value: "true" }));
-            dispatch(loadActivitiesAsync());
+            dispatch(setFilter("all"));
           }}
         />
         <Menu.Item
           content="I'm going"
-          active={"isGoing" in predicate}
+          active={filter === "isGoing"}
           onClick={() => {
-            dispatch(setPredicate({ predicate: "isGoing", value: "true" }));
-            dispatch(loadActivitiesAsync());
+            dispatch(setFilter("isGoing"));
           }}
         />
         <Menu.Item
           content="I'm hosting"
-          active={"isHost" in predicate}
+          active={filter === "isHost"}
           onClick={() => {
-            dispatch(setPredicate({ predicate: "isHost", value: "true" }));
-            dispatch(loadActivitiesAsync());
+            dispatch(setFilter("isHost"));
           }}
         />
       </Menu>
       <Header />
       <Calendar
-        onChange={(date: any) => handleStartFilter(date)}
+        onChange={(date: any) => handleStartDate(date)}
         value={dateValue || new Date()}
       />
     </>
