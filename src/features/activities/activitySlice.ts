@@ -171,12 +171,10 @@ export const activitiesSlice = createSlice({
   reducers: {
     setStartDate: (state, action) => {
       state.startDate = action.payload;
-      state.retainState = false;
     },
     setFilter: (state, action: PayloadAction<ActivityFilter>) => {
       state.startDate = "";
       state.filter = action.payload;
-      state.retainState = false;
     },
     setSelectedActivity: (state, action) => {
       state.selectedActivity = action.payload;
@@ -186,15 +184,11 @@ export const activitiesSlice = createSlice({
     },
     setPagingParams: (state, action) => {
       state.pagingParams.pageNumber = action.payload;
-      state.retainState = false;
     },
     setPagination: (state, action) => {
       state.pagination = action.payload;
     },
 
-    setRetainState: (state) => {
-      state.retainState = true;
-    },
     updateAttendeeFollowing: (state, action) => {
       state.activities.forEach((activity) => {
         activity.attendees.forEach((attendee) => {
@@ -339,5 +333,4 @@ export const {
   setStartDate,
   setFilter,
   setPagination,
-  setRetainState,
 } = activitiesSlice.actions;

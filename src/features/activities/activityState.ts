@@ -15,7 +15,6 @@ export interface ActivityState {
   pagingParams: PagingParams;
   startDate: string;
   filter: ActivityFilter;
-  retainState: boolean;
 }
 
 export const initialState: ActivityState = {
@@ -31,7 +30,6 @@ export const initialState: ActivityState = {
   },
   startDate: "",
   filter: "all",
-  retainState: true,
   groupedActivities: [],
 };
 
