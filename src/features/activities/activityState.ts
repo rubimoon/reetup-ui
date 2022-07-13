@@ -5,20 +5,21 @@ import { User } from "../../app/models/user";
 export type ActivityFilter = "all" | "isHost" | "isGoing";
 
 export interface ActivityState {
-  activityRegistry: { [key: string]: Activity };
+  activities: Activity[];
+  groupedActivities: [string, Activity[]][];
   selectedActivity: Activity | undefined;
   editMode: boolean;
   loading: boolean;
   loadingInitial: boolean;
   pagination: Pagination | null;
   pagingParams: PagingParams;
-  predicate: { [key: string]: any };
   startDate: string;
   filter: ActivityFilter;
+  retainState: boolean;
 }
 
 export const initialState: ActivityState = {
-  activityRegistry: {},
+  activities: [],
   selectedActivity: undefined,
   editMode: false,
   loading: false,
@@ -28,9 +29,10 @@ export const initialState: ActivityState = {
     pageNumber: 1,
     pageSize: 2,
   },
-  predicate: { all: true },
   startDate: "",
   filter: "all",
+  retainState: true,
+  groupedActivities: [],
 };
 
 export interface SetActivityState {

@@ -1,12 +1,13 @@
 import { Fragment } from "react";
 import { Header } from "semantic-ui-react";
-import { Activity } from "../../../app/models/activity";
+import { useAppSelector } from "../../../app/store/configureStore";
 import ActivityListItem from "./ActivityListItem";
 
-interface Props {
-  groupedActivities: [string, Activity[]][];
-}
-const ActivityList = ({ groupedActivities }: Props) => {
+const ActivityList = () => {
+  const groupedActivities = useAppSelector(
+    (state) => state.activities.groupedActivities
+  );
+
   return (
     <>
       {groupedActivities.map(([group, activities]) => (
