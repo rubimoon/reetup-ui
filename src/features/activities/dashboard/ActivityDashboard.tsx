@@ -9,7 +9,6 @@ const ActivityDashboard = () => {
   const {
     handleGetNext,
     loadingNext,
-    // hasMore,
     pagination,
     loadingInitial,
     groupedActivities,
