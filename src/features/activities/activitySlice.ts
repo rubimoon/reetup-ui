@@ -39,6 +39,7 @@ export const loadActivitiesAsync = createAsyncThunk<
     const currentUser = thunkAPI.getState().user.user!;
     try {
       const activities = await agent.Activities.list(params);
+      console.log("activities", activities);
       activities.data.forEach((activity) => {
         activity.isGoing = activity.attendees!.some(
           (a) => a.username === currentUser.username
@@ -95,10 +96,10 @@ export const createActivityAsync = createAsyncThunk<
   "activities/createActivityAsync",
   async (activity, { getState, rejectWithValue }) => {
     try {
+      activity.date = new Date(activity.date!).toISOString();
       await agent.Activities.create(activity);
       const newActivity = mapActivityFormValueToActivity(activity);
       const currentUser = getState().user.user!;
-      newActivity.date = new Date(newActivity.date!).toISOString();
       const attendee = mapUserToProfile(currentUser!);
       newActivity.hostUsername = currentUser!.username;
       newActivity.attendees = [attendee];
@@ -261,9 +262,7 @@ export const activitiesSlice = createSlice({
     });
     builder.addCase(createActivityAsync.fulfilled, (state, action) => {
       state.selectedActivity = action.payload;
-      state.activities = state.activities.map((activity) =>
-        activity.id === action.payload.id ? action.payload : activity
-      );
+      state.activities = [...state.activities, action.payload];
     });
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
       const activity = action.meta.arg;
