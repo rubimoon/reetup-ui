@@ -173,7 +173,6 @@ export const activitiesSlice = createSlice({
       state.startDate = action.payload;
     },
     setFilter: (state, action: PayloadAction<ActivityFilter>) => {
-      state.startDate = "";
       state.filter = action.payload;
     },
     setSelectedActivity: (state, action) => {
@@ -204,6 +203,14 @@ export const activitiesSlice = createSlice({
     clearSelectedActivity: (state) => {
       state.selectedActivity = undefined;
     },
+    presetActivities: (state) => {
+      state.startDate = "";
+      state.activities = [];
+      state.pagingParams = {
+        pageNumber: 1,
+        pageSize: 2,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(loadActivitiesAsync.pending, (state, action) => {
@@ -211,7 +218,7 @@ export const activitiesSlice = createSlice({
     });
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
       state.activities = [...state.activities, ...action.payload.data];
-
+      console.log("size: ", state.activities.length);
       state.pagination = action.payload.pagination;
       const activitiesByDate = Object.values(state.activities).sort((a, b) => {
         return new Date(a.date!).getTime() - new Date(b.date!).getTime();
@@ -228,6 +235,7 @@ export const activitiesSlice = createSlice({
       );
       state.groupedActivities = arr;
       state.loadingInitial = false;
+      console.log("activities ", state.activities);
     });
     builder.addCase(loadActivitiesAsync.rejected, (state) => {
       state.loadingInitial = false;
@@ -333,4 +341,5 @@ export const {
   setStartDate,
   setFilter,
   setPagination,
+  presetActivities,
 } = activitiesSlice.actions;

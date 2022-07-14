@@ -17,7 +17,6 @@ export default function useActivities() {
 
   useEffect(() => {
     dispatch(loadActivitiesAsync({ pagingParams, startDate, filter }));
-
     setLoadingNext(false);
   }, [dispatch, filter, pagingParams, startDate]);
 

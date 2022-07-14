@@ -5,7 +5,8 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
-import { setFilter, setStartDate } from "../activitySlice";
+import { presetActivities, setFilter, setStartDate } from "../activitySlice";
+import { ActivityFilter } from "../activityState";
 
 const ActivityFilters = () => {
   const { filter } = useAppSelector((state) => state.activities);
@@ -15,7 +16,13 @@ const ActivityFilters = () => {
   const handleStartDate = (date: any) => {
     setDateValue(new Date(date));
     const plainDate = dateValue.toISOString();
+    dispatch(presetActivities());
     dispatch(setStartDate(plainDate));
+  };
+
+  const handleFilter = (filter: ActivityFilter) => {
+    dispatch(presetActivities());
+    dispatch(setFilter(filter));
   };
 
   return (
@@ -26,21 +33,21 @@ const ActivityFilters = () => {
           content="All Activites"
           active={filter === "all"}
           onClick={() => {
-            dispatch(setFilter("all"));
+            handleFilter("all");
           }}
         />
         <Menu.Item
           content="I'm going"
           active={filter === "isGoing"}
           onClick={() => {
-            dispatch(setFilter("isGoing"));
+            handleFilter("isGoing");
           }}
         />
         <Menu.Item
           content="I'm hosting"
           active={filter === "isHost"}
           onClick={() => {
-            dispatch(setFilter("isHost"));
+            handleFilter("isHost");
           }}
         />
       </Menu>
