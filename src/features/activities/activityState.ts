@@ -5,7 +5,7 @@ import { User } from "../../app/models/user";
 export type ActivityFilter = "all" | "isHost" | "isGoing";
 
 export interface ActivityState {
-  activities: Activity[];
+  activityRegistry: Activity[];
   groupedActivities: [string, Activity[]][];
   selectedActivity: Activity | undefined;
   editMode: boolean;
@@ -18,7 +18,7 @@ export interface ActivityState {
 }
 
 export const initialState: ActivityState = {
-  activities: [],
+  activityRegistry: [],
   selectedActivity: undefined,
   editMode: false,
   loading: false,

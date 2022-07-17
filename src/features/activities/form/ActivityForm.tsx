@@ -14,6 +14,7 @@ import { ActivityFormValues } from "../../../app/models/activity";
 import {
   createActivityAsync,
   loadActivityAsync,
+  resetActivityRegistry,
   updateActivityAsync,
 } from "../activitySlice";
 import {
@@ -41,6 +42,7 @@ const ActivityForm = () => {
     }),
     []
   );
+
   const [formValues, setFormValues] =
     useState<ActivityFormValues>(initialFormValues);
 
@@ -64,17 +66,19 @@ const ActivityForm = () => {
   }, [dispatch, id, initialFormValues, selectedActivity]);
 
   function handleFormSubmit(formValues: ActivityFormValues) {
+    dispatch(resetActivityRegistry());
     if (!formValues.id) {
       let newActivity = {
         ...formValues,
         id: uuid(),
       };
-      dispatch(createActivityAsync(newActivity));
-      history.push(`/activities/${newActivity.id}`);
+      dispatch(createActivityAsync(newActivity)).then(() => {
+        history.push(`/activities/${newActivity.id}`);
+      });
     } else {
-      dispatch(updateActivityAsync(formValues)).then(() =>
-        history.push(`/activities/${formValues.id}`)
-      );
+      dispatch(updateActivityAsync(formValues)).then(() => {
+        history.push(`/activities/${formValues.id}`);
+      });
     }
   }
 

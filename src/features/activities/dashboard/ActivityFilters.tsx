@@ -5,7 +5,11 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
-import { presetActivities, setFilter, setStartDate } from "../activitySlice";
+import {
+  resetActivityRegistry,
+  setFilter,
+  setStartDate,
+} from "../activitySlice";
 import { ActivityFilter } from "../activityState";
 
 const ActivityFilters = () => {
@@ -16,12 +20,12 @@ const ActivityFilters = () => {
   const handleStartDate = (date: any) => {
     setDateValue(new Date(date));
     const plainDate = dateValue.toISOString();
-    dispatch(presetActivities());
+    dispatch(resetActivityRegistry());
     dispatch(setStartDate(plainDate));
   };
 
   const handleFilter = (filter: ActivityFilter) => {
-    dispatch(presetActivities());
+    dispatch(resetActivityRegistry());
     dispatch(setFilter(filter));
   };
 
