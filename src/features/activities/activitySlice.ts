@@ -5,6 +5,7 @@ import {
   mapActivityFormValueToActivity,
   mapUserToProfile,
 } from "../../app/common/utils/mapper";
+import { setError } from "../../app/errors/errorSlice";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult, PagingParams } from "../../app/models/pagination";
 import { User } from "../../app/models/user";
@@ -26,15 +27,12 @@ export const loadActivitiesAsync = createAsyncThunk<
   { state: RootState }
 >(
   "activities/loadActivitiesAsync",
-  async (
-    { currentUser, startDate = "", filter = "all", pagingParams },
-    thunkAPI
-  ) => {
+  async ({ currentUser, startDate, filter, pagingParams }, thunkAPI) => {
     const params = generateAxiosParams(pagingParams, filter, startDate);
     try {
       return await agent.Activities.list(params);
     } catch (error: any) {
-      console.log("error is ", error);
+      thunkAPI.dispatch(setError(error.status));
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }
@@ -194,7 +192,7 @@ export const activitiesSlice = createSlice({
       state.groupedActivities = arr;
       state.loadingInitial = false;
     });
-    builder.addCase(loadActivitiesAsync.rejected, (state) => {
+    builder.addCase(loadActivitiesAsync.rejected, (state, action) => {
       state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.pending, (state) => {
@@ -223,6 +221,7 @@ export const activitiesSlice = createSlice({
       state.activityRegistry[newActivity.id] = newActivity;
       state.selectedActivity = newActivity;
       state.loadingInitial = false;
+      state.retainState = false;
     });
 
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
@@ -237,6 +236,7 @@ export const activitiesSlice = createSlice({
       setActivityUser(currentUser, updatedActivity);
       state.activityRegistry[updatedActivity.id] = updatedActivity;
       state.selectedActivity = updatedActivity;
+      state.retainState = false;
     });
     builder.addCase(deleteActivityAsync.fulfilled, (state, action) => {
       delete state.activityRegistry[action.meta.arg.id];
@@ -308,7 +308,7 @@ function generateAxiosParams(
       case "isHost":
         params.append("isHost", "true");
         break;
-      default:
+      case "all":
         params.append("all", "true");
     }
   }

@@ -11,9 +11,9 @@ import LoadingComponent from "./LoadingComponent";
 import NavBar from "./NavBar";
 
 const App = () => {
-  const location = useLocation();
   const dispatch = useAppDispatch();
   const { token, appLoaded } = useAppSelector((state) => state.common);
+  const location = useLocation();
 
   useEffect(() => {
     if (token) {

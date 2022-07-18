@@ -12,6 +12,7 @@ import { categoryOptions } from "../../../app/common/options/categoryOptions";
 import MyDateInput from "../../../app/common/form/MyDateInput";
 import { ActivityFormValues } from "../../../app/models/activity";
 import {
+  clearSelectedActivity,
   createActivityAsync,
   loadActivityAsync,
   resetActivityRegistry,
@@ -54,6 +55,7 @@ const ActivityForm = () => {
   });
 
   useEffect(() => {
+    dispatch(clearSelectedActivity());
     if (!id) return;
     dispatch(loadActivityAsync({ currentUser: user!, id }));
   }, [dispatch, id, user]);

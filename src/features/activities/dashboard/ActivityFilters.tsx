@@ -13,7 +13,9 @@ import {
 import { ActivityFilter } from "../activityState";
 
 const ActivityFilters = () => {
-  const { filter } = useAppSelector((state) => state.activities);
+  const { filter, activityRegistry } = useAppSelector(
+    (state) => state.activities
+  );
   const [dateValue, setDateValue] = useState<Date>(new Date());
   const dispatch = useAppDispatch();
 
@@ -31,6 +33,7 @@ const ActivityFilters = () => {
 
   return (
     <>
+      {`${Object.keys(activityRegistry).length} Found`}
       <Menu vertical size="large" style={{ width: "100%", marginTop: 25 }}>
         <Header icon="filter" attached color="teal" content="Filters" />
         <Menu.Item

@@ -115,7 +115,7 @@ export const userSlice = createSlice({
       state.user = action.payload;
     });
     builder.addCase(getCurrentUserAysnc.rejected, (state, action) => {
-      console.log("getCurrentUserAysnc.rejected");
+      state.user = null;
     });
     builder.addCase(registerAsync.fulfilled, (state, action) => {
       state.email = action.payload.email;
