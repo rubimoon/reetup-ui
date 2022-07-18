@@ -13,11 +13,19 @@ import { ActivityFilter, initialState } from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
-  { startDate: string; filter: ActivityFilter; pagingParams: PagingParams },
+  {
+    currentUser: User;
+    startDate: string;
+    filter: ActivityFilter;
+    pagingParams: PagingParams;
+  },
   { state: RootState }
 >(
   "activities/loadActivitiesAsync",
-  async ({ startDate = "", filter = "all", pagingParams }, thunkAPI) => {
+  async (
+    { currentUser, startDate = "", filter = "all", pagingParams },
+    thunkAPI
+  ) => {
     const params = new URLSearchParams();
     params.append("pageNumber", pagingParams.pageNumber!.toString());
     params.append("pageSize", pagingParams.pageSize!.toString());
@@ -36,20 +44,8 @@ export const loadActivitiesAsync = createAsyncThunk<
       }
     }
 
-    const currentUser = thunkAPI.getState().user.user!;
     try {
-      const activities = await agent.Activities.list(params);
-      console.log("activities", activities);
-      activities.data.forEach((activity) => {
-        activity.isGoing = activity.attendees!.some(
-          (a) => a.username === currentUser.username
-        );
-        activity.isHost = activity.hostUsername === currentUser.username;
-        activity.host = activity.attendees?.find(
-          (x) => x.username === activity.hostUsername
-        );
-      });
-      return activities;
+      return await agent.Activities.list(params);
     } catch (error: any) {
       console.log("error is ", error);
       return thunkAPI.rejectWithValue({ error: error.data });
@@ -59,23 +55,14 @@ export const loadActivitiesAsync = createAsyncThunk<
 
 export const loadActivityAsync = createAsyncThunk<
   Activity,
-  string,
+  { currentUser: User; id: string },
   { state: RootState }
 >(
   "activities/loadActivityAsync",
-  async (id, { rejectWithValue, dispatch, getState }) => {
+  async ({ currentUser, id }, { rejectWithValue, dispatch, getState }) => {
     dispatch(setLoadingInitial(true));
-    const currentUser = getState().user.user!;
     try {
-      const activity = await agent.Activities.details(id);
-      activity.isGoing = activity.attendees!.some(
-        (a) => a.username === currentUser.username
-      );
-      activity.isHost = activity.hostUsername === currentUser.username;
-      activity.host = activity.attendees?.find(
-        (x) => x.username === activity.hostUsername
-      );
-      return activity;
+      return await agent.Activities.details(id);
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
@@ -89,30 +76,17 @@ export const loadActivityAsync = createAsyncThunk<
 );
 
 export const createActivityAsync = createAsyncThunk<
-  void,
   ActivityFormValues,
+  { currentUser: User; activity: ActivityFormValues },
   { state: RootState }
 >(
   "activities/createActivityAsync",
-  async (activity, { getState, rejectWithValue }) => {
+  async ({ currentUser, activity }, { getState, rejectWithValue }) => {
     try {
       //TODO make function
       activity.date = new Date(activity.date!).toISOString();
       await agent.Activities.create(activity);
-      const newActivity = mapActivityFormValueToActivity(activity);
-      const currentUser = getState().user.user!;
-      const attendee = mapUserToProfile(currentUser!);
-      newActivity.hostUsername = currentUser!.username;
-      newActivity.attendees = [attendee];
-      newActivity.isGoing = newActivity.attendees!.some(
-        (a) => a.username === currentUser.username
-      );
-      newActivity.isHost = newActivity.hostUsername === currentUser.username;
-      newActivity.host = newActivity.attendees?.find(
-        (x) => x.username === newActivity.hostUsername
-      );
-      // return newActivity;
-      return;
+      return activity;
     } catch (error: any) {
       return rejectWithValue({ error: error.data });
     }
@@ -125,6 +99,7 @@ export const updateActivityAsync = createAsyncThunk<
   { state: RootState }
 >("activities/updateActivityAsync", async (selectedActivity, thunkAPI) => {
   try {
+    console.log(selectedActivity);
     return await agent.Activities.update(selectedActivity);
   } catch (error: any) {
     return thunkAPI.rejectWithValue({ error: error.data });
@@ -157,16 +132,18 @@ export const updateAttendanceAsync = createAsyncThunk<
 
 export const cancelActivityToggleAsync = createAsyncThunk<
   void,
-  void,
+  Activity,
   { state: RootState }
->("activities/cancelActivityToggleAsync", async (_, thunkAPI) => {
-  try {
-    const activity = thunkAPI.getState().activities.selectedActivity!;
-    return await agent.Activities.attend(activity.id);
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue({ error: error.data });
+>(
+  "activities/cancelActivityToggleAsync",
+  async (selectedActivity, thunkAPI) => {
+    try {
+      return await agent.Activities.attend(selectedActivity.id);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
   }
-});
+);
 
 export const activitiesSlice = createSlice({
   name: "activities",
@@ -192,7 +169,7 @@ export const activitiesSlice = createSlice({
     },
 
     updateAttendeeFollowing: (state, action) => {
-      state.activityRegistry.forEach((activity) => {
+      Object.values(state.activityRegistry).forEach((activity) => {
         activity.attendees.forEach((attendee) => {
           if (attendee.username === action.payload) {
             attendee.following
@@ -208,7 +185,7 @@ export const activitiesSlice = createSlice({
     },
     resetActivityRegistry: (state) => {
       state.startDate = "";
-      state.activityRegistry = [];
+      state.activityRegistry = {};
       state.pagingParams = {
         pageNumber: 1,
         pageSize: 2,
@@ -220,17 +197,27 @@ export const activitiesSlice = createSlice({
       state.loadingInitial = true;
     });
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
-      state.activityRegistry = [
-        ...state.activityRegistry,
-        ...action.payload.data,
-      ];
+      const activities = action.payload.data;
+      const currentUser = action.meta.arg.currentUser;
+
+      const ob = activities.reduce((acc, activity) => {
+        activity.isGoing = activity.attendees!.some(
+          (a) => a.username === currentUser.username
+        );
+        activity.isHost = activity.hostUsername === currentUser.username;
+        activity.host = activity.attendees?.find(
+          (x) => x.username === activity.hostUsername
+        );
+        return { ...acc, [activity.id]: activity };
+      }, {});
+
+      state.activityRegistry = { ...state.activityRegistry, ...ob };
+
       console.log("size: ", state.activityRegistry.length);
       console.log("registry: ", state.activityRegistry);
       state.pagination = action.payload.pagination;
       const activitiesByDate = Object.values(state.activityRegistry).sort(
-        (a, b) => {
-          return new Date(a.date!).getTime() - new Date(b.date!).getTime();
-        }
+        (a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime()
       );
 
       const arr = Object.entries(
@@ -250,18 +237,25 @@ export const activitiesSlice = createSlice({
       state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.pending, (state, action) => {
-      const activity = state.activityRegistry.find(
-        (activity) => activity.id === action.meta.arg
+      const activity = Object.values(state.activityRegistry).find(
+        (activity) => activity.id === action.meta.arg.id
       );
       if (activity) {
         state.selectedActivity = activity;
       }
     });
     builder.addCase(loadActivityAsync.fulfilled, (state, action) => {
-      state.selectedActivity = action.payload;
-      // state.activityRegistry = state.activityRegistry.map((activity) =>
-      //   activity.id === action.payload.id ? action.payload : activity
-      // );
+      const activity = action.payload;
+      const currentUser = action.meta.arg.currentUser;
+
+      activity.isGoing = activity.attendees!.some(
+        (a) => a.username === currentUser.username
+      );
+      activity.isHost = activity.hostUsername === currentUser.username;
+      activity.host = activity.attendees?.find(
+        (x) => x.username === activity.hostUsername
+      );
+      state.selectedActivity = activity;
       state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.rejected, (state, action) => {
@@ -269,19 +263,35 @@ export const activitiesSlice = createSlice({
     });
     builder.addCase(createActivityAsync.fulfilled, (state, action) => {
       console.log("createActivityAsync.fulfilled");
+      const newActivity = mapActivityFormValueToActivity(
+        action.meta.arg.activity
+      );
+      const currentUser = action.meta.arg.currentUser;
+
+      const attendee = mapUserToProfile(currentUser!);
+      newActivity.hostUsername = currentUser!.username;
+      newActivity.attendees = [attendee];
+      newActivity.isGoing = newActivity.attendees!.some(
+        (a) => a.username === currentUser.username
+      );
+      newActivity.isHost = newActivity.hostUsername === currentUser.username;
+      newActivity.host = newActivity.attendees?.find(
+        (x) => x.username === newActivity.hostUsername
+      );
+      state.activityRegistry = { ...state.activityRegistry, newActivity };
     });
 
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
       const activity = action.meta.arg;
       if (activity.id) {
-        let oldActivity = state.activityRegistry.find(
+        let oldActivity = Object.values(state.activityRegistry).find(
           (activity) => activity.id === action.meta.arg.id
         );
         let updatedActivity = {
           ...oldActivity,
           ...activity,
         } as Activity;
-        state.activityRegistry = [...state.activityRegistry, updatedActivity];
+        state.activityRegistry = { ...state.activityRegistry, updatedActivity };
         state.selectedActivity = updatedActivity as Activity;
       }
     });
@@ -289,9 +299,7 @@ export const activitiesSlice = createSlice({
       console.log("updateActivityAsync.rejected");
     });
     builder.addCase(deleteActivityAsync.fulfilled, (state, action) => {
-      state.activityRegistry = state.activityRegistry.filter(
-        (activity) => activity.id !== action.meta.arg.id
-      );
+      delete state.activityRegistry[action.meta.arg.id];
       state.loading = false;
     });
     builder.addCase(deleteActivityAsync.rejected, (state, action) => {
@@ -310,11 +318,8 @@ export const activitiesSlice = createSlice({
         state.selectedActivity?.attendees?.push(attendee);
         state.selectedActivity!.isGoing = true;
       }
-      state.activityRegistry = state.activityRegistry.map((activity) =>
-        activity.id === state.selectedActivity!.id
-          ? state.selectedActivity!
-          : activity
-      );
+      state.activityRegistry[state.selectedActivity!.id] =
+        state.selectedActivity!;
     });
     builder.addCase(updateAttendanceAsync.rejected, (state) => {
       state.loading = false;
@@ -326,11 +331,8 @@ export const activitiesSlice = createSlice({
       state.selectedActivity!.isCancelled =
         !state.selectedActivity?.isCancelled;
 
-      state.activityRegistry = state.activityRegistry.map((activity) =>
-        activity.id === state.selectedActivity!.id
-          ? state.selectedActivity!
-          : activity
-      );
+      state.activityRegistry[state.selectedActivity!.id] =
+        state.selectedActivity!;
       state.loading = false;
     });
     builder.addCase(cancelActivityToggleAsync.rejected, (state) => {

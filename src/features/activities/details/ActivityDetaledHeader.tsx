@@ -29,7 +29,9 @@ interface Props {
 }
 
 const ActivityDetailedHeader = ({ activity }: Props) => {
-  const { loading } = useAppSelector((state) => state.activities);
+  const { loading, selectedActivity } = useAppSelector(
+    (state) => state.activities
+  );
   const currentUser = useAppSelector((state) => state.user.user);
 
   const dispatch = useAppDispatch();
@@ -39,7 +41,8 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
   };
 
   const handleDeleteActivity = () => {
-    dispatch(cancelActivityToggleAsync());
+    if (!selectedActivity) return;
+    dispatch(cancelActivityToggleAsync(selectedActivity));
   };
 
   return (

@@ -6,8 +6,13 @@ import ActivityList from "./ActivityList";
 import ActivityListItemPlaceholder from "./ActivityListItemPlaceholder";
 
 const ActivityDashboard = () => {
-  const { handleGetNext, loadingNext, pagination, loadingInitial } =
-    useActivities();
+  const {
+    handleGetNext,
+    loadingNext,
+    pagination,
+    loadingInitial,
+    groupedActivities,
+  } = useActivities();
 
   return (
     <Grid>
@@ -28,7 +33,7 @@ const ActivityDashboard = () => {
             }
             initialLoad={false}
           >
-            <ActivityList />
+            <ActivityList groupedActivities={groupedActivities} />
           </InfiniteScroll>
         )}
       </Grid.Column>

@@ -17,14 +17,16 @@ const ActivityDetails = () => {
   const { selectedActivity, loadingInitial } = useAppSelector(
     (state) => state.activities
   );
+  const user = useAppSelector((state) => state.user.user);
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    if (id) dispatch(loadActivityAsync(id));
+    if (!user) return;
+    if (id) dispatch(loadActivityAsync({ currentUser: user, id }));
     return () => {
       dispatch(clearSelectedActivity());
     };
-  }, [id, dispatch]);
+  }, [id, dispatch, user]);
 
   if (loadingInitial || !selectedActivity) return <LoadingComponent />;
 

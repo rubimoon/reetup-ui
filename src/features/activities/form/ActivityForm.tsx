@@ -31,6 +31,7 @@ const ActivityForm = () => {
   const { loadingInitial, selectedActivity } = useAppSelector(
     (state) => state.activities
   );
+  const { user } = useAppSelector((state) => state.user);
   const initialFormValues = useMemo<ActivityFormValues>(
     () => ({
       title: "",
@@ -56,23 +57,28 @@ const ActivityForm = () => {
   });
 
   useEffect(() => {
+    if (!user) return;
     if (id) {
-      dispatch(loadActivityAsync(id));
+      dispatch(loadActivityAsync({ currentUser: user, id }));
       const formValues = mapActivityToActivityFormValues(selectedActivity!);
       setFormValues(formValues);
     } else {
       setFormValues(initialFormValues);
     }
-  }, [dispatch, id, initialFormValues, selectedActivity]);
+  }, [dispatch, id, initialFormValues, selectedActivity, user]);
 
   function handleFormSubmit(formValues: ActivityFormValues) {
+    if (!user) return;
+
     dispatch(resetActivityRegistry());
     if (!formValues.id) {
       let newActivity = {
         ...formValues,
         id: uuid(),
       };
-      dispatch(createActivityAsync(newActivity)).then(() => {
+      dispatch(
+        createActivityAsync({ currentUser: user, activity: newActivity })
+      ).then(() => {
         history.push(`/activities/${newActivity.id}`);
       });
     } else {
