@@ -1,11 +1,28 @@
+import { useEffect } from "react";
 import { Tab, Grid, Header, Card } from "semantic-ui-react";
-import { useAppSelector } from "../../../app/store/configureStore";
+import { loadFollowingsAsync } from ".";
+import {
+  useAppSelector,
+  useAppDispatch,
+} from "../../../app/store/configureStore";
 import ProfileCard from "../layout/ProfileCard";
 
 const ProfileFollowings = () => {
   const { profile, followings, loadingFollowings, activeTab } = useAppSelector(
     (state) => state.profile
   );
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    switch (activeTab) {
+      case 3:
+        dispatch(loadFollowingsAsync("followers"));
+        break;
+      case 4:
+        dispatch(loadFollowingsAsync("following"));
+        break;
+    }
+  }, [activeTab, dispatch]);
 
   return (
     <Tab.Pane loading={loadingFollowings}>

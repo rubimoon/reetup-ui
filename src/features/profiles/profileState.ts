@@ -25,3 +25,5 @@ export const initialState: ProfileState = {
   loadingFollowings: false,
   isCurrentUser: undefined,
 };
+
+export type FollowingsTypes = "following" | "followers";

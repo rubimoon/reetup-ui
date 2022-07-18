@@ -4,6 +4,7 @@ import { Profile } from "../../../app/models/profile";
 import { User } from "../../../app/models/user";
 import { RootState } from "../../../app/store/configureStore";
 import { updateAttendeeFollowing } from "../../activities/activitySlice";
+import { FollowingsTypes } from "../profileState";
 
 export const updateFollowingAsync = createAsyncThunk<
   User,
@@ -21,7 +22,7 @@ export const updateFollowingAsync = createAsyncThunk<
 
 export const loadFollowingsAsync = createAsyncThunk<
   Profile[],
-  string,
+  FollowingsTypes,
   { state: RootState }
 >("profile/loadFollowingsAsync", async (predicate, thunkAPI) => {
   const profile = thunkAPI.getState().profile.profile;
