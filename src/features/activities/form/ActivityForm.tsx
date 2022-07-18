@@ -66,6 +66,7 @@ const ActivityForm = () => {
         ...formValues,
         id: uuid(),
       };
+      newActivity.date = new Date(newActivity.date!).toISOString();
       dispatch(
         createActivityAsync({ currentUser: user, activity: newActivity })
       ).then(() => {

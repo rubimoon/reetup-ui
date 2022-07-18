@@ -26,24 +26,7 @@ export const loadActivitiesAsync = createAsyncThunk<
     { currentUser, startDate = "", filter = "all", pagingParams },
     thunkAPI
   ) => {
-    const params = new URLSearchParams();
-    params.append("pageNumber", pagingParams.pageNumber!.toString());
-    params.append("pageSize", pagingParams.pageSize!.toString());
-    if (startDate) {
-      params.append("startDate", startDate);
-    } else {
-      switch (filter) {
-        case "isGoing":
-          params.append("isGoing", "true");
-          break;
-        case "isHost":
-          params.append("isHost", "true");
-          break;
-        default:
-          params.append("all", "true");
-      }
-    }
-
+    const params = generateAxiosParams(pagingParams, filter, startDate);
     try {
       return await agent.Activities.list(params);
     } catch (error: any) {
@@ -73,8 +56,6 @@ export const createActivityAsync = createAsyncThunk<
   "activities/createActivityAsync",
   async ({ currentUser, activity }, { getState, rejectWithValue }) => {
     try {
-      //TODO make function
-      activity.date = new Date(activity.date!).toISOString();
       await agent.Activities.create(activity);
       return activity;
     } catch (error: any) {
@@ -190,13 +171,7 @@ export const activitiesSlice = createSlice({
       const currentUser = action.meta.arg.currentUser;
 
       const ob = activities.reduce((acc, activity) => {
-        activity.isGoing = activity.attendees!.some(
-          (a) => a.username === currentUser.username
-        );
-        activity.isHost = activity.hostUsername === currentUser.username;
-        activity.host = activity.attendees?.find(
-          (x) => x.username === activity.hostUsername
-        );
+        setActivityUser(currentUser, activity);
         return { ...acc, [activity.id]: activity };
       }, {});
 
@@ -231,14 +206,7 @@ export const activitiesSlice = createSlice({
     builder.addCase(loadActivityAsync.fulfilled, (state, action) => {
       const activity = action.payload;
       const currentUser = action.meta.arg.currentUser;
-
-      activity.isGoing = activity.attendees!.some(
-        (a) => a.username === currentUser.username
-      );
-      activity.isHost = activity.hostUsername === currentUser.username;
-      activity.host = activity.attendees?.find(
-        (x) => x.username === activity.hostUsername
-      );
+      setActivityUser(currentUser, activity);
       state.selectedActivity = activity;
       state.loadingInitial = false;
     });
@@ -249,19 +217,12 @@ export const activitiesSlice = createSlice({
       const newActivity = mapActivityFormValueToActivity(
         action.meta.arg.activity
       );
-      const currentUser = action.meta.arg.currentUser;
+      const currentUser = action.meta.arg.currentUser!;
 
-      const attendee = mapUserToProfile(currentUser!);
-      newActivity.hostUsername = currentUser!.username;
+      const attendee = mapUserToProfile(currentUser);
+      newActivity.hostUsername = currentUser.username;
       newActivity.attendees = [attendee];
-      newActivity.isGoing = newActivity.attendees!.some(
-        (a) => a.username === currentUser.username
-      );
-      newActivity.isHost = newActivity.hostUsername === currentUser.username;
-      newActivity.host = newActivity.attendees?.find(
-        (x) => x.username === newActivity.hostUsername
-      );
-
+      setActivityUser(currentUser, newActivity);
       state.activityRegistry[newActivity.id] = newActivity;
       state.selectedActivity = newActivity;
       state.loadingInitial = false;
@@ -271,19 +232,12 @@ export const activitiesSlice = createSlice({
       const updatedActivity = mapActivityFormValueToActivity(
         action.meta.arg.activity
       );
-      const currentUser = action.meta.arg.currentUser;
+      const currentUser = action.meta.arg.currentUser!;
 
-      const attendee = mapUserToProfile(currentUser!);
-      updatedActivity.hostUsername = currentUser!.username;
+      const attendee = mapUserToProfile(currentUser);
+      updatedActivity.hostUsername = currentUser.username;
       updatedActivity.attendees = [attendee];
-      updatedActivity.isGoing = updatedActivity.attendees!.some(
-        (a) => a.username === currentUser.username
-      );
-      updatedActivity.isHost =
-        updatedActivity.hostUsername === currentUser.username;
-      updatedActivity.host = updatedActivity.attendees?.find(
-        (x) => x.username === updatedActivity.hostUsername
-      );
+      setActivityUser(currentUser, updatedActivity);
       state.activityRegistry[updatedActivity.id] = updatedActivity;
       state.selectedActivity = updatedActivity;
     });
@@ -328,6 +282,41 @@ export const activitiesSlice = createSlice({
     });
   },
 });
+
+function setActivityUser(user: User, activity: Activity) {
+  activity.isGoing = activity.attendees!.some(
+    (a) => a.username === user.username
+  );
+  activity.isHost = activity.hostUsername === user.username;
+  activity.host = activity.attendees?.find(
+    (x) => x.username === activity.hostUsername
+  );
+}
+
+function generateAxiosParams(
+  pagingParams: PagingParams,
+  filter: string,
+  startDate: string
+) {
+  const params = new URLSearchParams();
+  params.append("pageNumber", pagingParams.pageNumber!.toString());
+  params.append("pageSize", pagingParams.pageSize!.toString());
+  if (startDate) {
+    params.append("startDate", startDate);
+  } else {
+    switch (filter) {
+      case "isGoing":
+        params.append("isGoing", "true");
+        break;
+      case "isHost":
+        params.append("isHost", "true");
+        break;
+      default:
+        params.append("all", "true");
+    }
+  }
+  return params;
+}
 
 export const {
   setRetainState,
