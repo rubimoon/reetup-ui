@@ -1,15 +1,11 @@
 import { useEffect } from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import { Container } from "semantic-ui-react";
-import HomePage from "../../features/home/HomePage";
-
 import ModalManager from "../common/modals/ModalManager";
 import { setAppLoaded } from "../store/commonSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
 import AppRoutes from "./AppRoutes";
 import LoadingComponent from "./LoadingComponent";
-import NavBar from "./NavBar";
 
 const App = () => {
   const dispatch = useAppDispatch();
