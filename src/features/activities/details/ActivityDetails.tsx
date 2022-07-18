@@ -28,7 +28,6 @@ const ActivityDetails = () => {
   }, [dispatch, id, user]);
 
   if (loadingInitial || !selectedActivity) return <LoadingComponent />;
-  console.log("selectedActivity:", selectedActivity);
 
   return (
     <Grid>

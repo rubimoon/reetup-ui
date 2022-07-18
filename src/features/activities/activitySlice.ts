@@ -9,7 +9,11 @@ import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult, PagingParams } from "../../app/models/pagination";
 import { User } from "../../app/models/user";
 import { RootState } from "../../app/store/configureStore";
-import { ActivityFilter, initialState } from "./activityState";
+import {
+  ActivityFilter,
+  initialPagingParams,
+  initialState,
+} from "./activityState";
 
 export const loadActivitiesAsync = createAsyncThunk<
   PaginatedResult<Activity[]>,
@@ -156,10 +160,7 @@ export const activitiesSlice = createSlice({
     resetActivityRegistry: (state) => {
       state.startDate = "";
       state.activityRegistry = {};
-      state.pagingParams = {
-        pageNumber: 1,
-        pageSize: 2,
-      };
+      state.pagingParams = initialPagingParams;
     },
   },
   extraReducers: (builder) => {
@@ -176,9 +177,6 @@ export const activitiesSlice = createSlice({
       }, {});
 
       state.activityRegistry = { ...state.activityRegistry, ...ob };
-
-      console.log("size: ", state.activityRegistry.length);
-      console.log("registry: ", state.activityRegistry);
       state.pagination = action.payload.pagination;
       const activitiesByDate = Object.values(state.activityRegistry).sort(
         (a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime()

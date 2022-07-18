@@ -12,7 +12,6 @@ export const loginAsync = createAsyncThunk<User, UserFormValues>(
       const user = await agent.Account.login(creds);
       thunkAPI.dispatch(setToken(user.token));
       thunkAPI.dispatch(startRefreshTokenTimer(user));
-
       return user;
     } catch (error: any) {
       return thunkAPI.rejectWithValue({ error: error.data });
@@ -119,11 +118,7 @@ export const userSlice = createSlice({
       console.log("getCurrentUserAysnc.rejected");
     });
     builder.addCase(registerAsync.fulfilled, (state, action) => {
-      // const payload = action.payload;
-      // const email = action.meta.arg.creds.email;
       state.email = action.payload.email;
-      // history.push(`/account/registerSuccess?email=${email}`);
-      // closeModal();
     });
   },
 });

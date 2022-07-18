@@ -1,6 +1,5 @@
 import { Activity } from "../../app/models/activity";
 import { Pagination, PagingParams } from "../../app/models/pagination";
-import { User } from "../../app/models/user";
 
 export type ActivityFilter = "all" | "isHost" | "isGoing";
 
@@ -18,6 +17,11 @@ export interface ActivityState {
   retainState: boolean;
 }
 
+export const initialPagingParams = {
+  pageNumber: 1,
+  pageSize: 2,
+};
+
 export const initialState: ActivityState = {
   activityRegistry: {},
   selectedActivity: undefined,
@@ -25,21 +29,9 @@ export const initialState: ActivityState = {
   loading: false,
   loadingInitial: false,
   pagination: null,
-  pagingParams: {
-    pageNumber: 1,
-    pageSize: 2,
-  },
+  pagingParams: initialPagingParams,
   startDate: "",
   filter: "all",
   groupedActivities: [],
   retainState: false,
 };
-
-export interface SetActivityState {
-  activity: Activity | null;
-  currentUser: User | null;
-}
-
-export interface LoadActivityAsyncState {
-  activity: Activity;
-}
