@@ -143,21 +143,18 @@ export const activitiesSlice = createSlice({
   reducers: {
     setStartDate: (state, action) => {
       state.startDate = action.payload;
+      state.retainState = false;
     },
     setFilter: (state, action: PayloadAction<ActivityFilter>) => {
       state.filter = action.payload;
+      state.retainState = false;
     },
-    setSelectedActivity: (state, action) => {
-      state.selectedActivity = action.payload;
+    setRetainState: (state) => {
+      state.retainState = true;
     },
-    setLoadingInitial: (state, action) => {
-      state.loadingInitial = action.payload;
-    },
+
     setPagingParams: (state, action) => {
       state.pagingParams.pageNumber = action.payload;
-    },
-    setPagination: (state, action) => {
-      state.pagination = action.payload;
     },
 
     updateAttendeeFollowing: (state, action) => {
@@ -185,7 +182,7 @@ export const activitiesSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(loadActivitiesAsync.pending, (state, action) => {
+    builder.addCase(loadActivitiesAsync.pending, (state) => {
       state.loadingInitial = true;
     });
     builder.addCase(loadActivitiesAsync.fulfilled, (state, action) => {
@@ -228,7 +225,7 @@ export const activitiesSlice = createSlice({
     builder.addCase(loadActivitiesAsync.rejected, (state) => {
       state.loadingInitial = false;
     });
-    builder.addCase(loadActivityAsync.pending, (state, action) => {
+    builder.addCase(loadActivityAsync.pending, (state) => {
       state.loadingInitial = true;
     });
     builder.addCase(loadActivityAsync.fulfilled, (state, action) => {
@@ -245,9 +242,10 @@ export const activitiesSlice = createSlice({
       state.selectedActivity = activity;
       state.loadingInitial = false;
     });
-    builder.addCase(loadActivityAsync.rejected, (state, action) => {});
+    builder.addCase(loadActivityAsync.rejected, (state) => {
+      state.loadingInitial = false;
+    });
     builder.addCase(createActivityAsync.fulfilled, (state, action) => {
-      console.log("createActivityAsync.fulfilled");
       const newActivity = mapActivityFormValueToActivity(
         action.meta.arg.activity
       );
@@ -289,9 +287,6 @@ export const activitiesSlice = createSlice({
       state.activityRegistry[updatedActivity.id] = updatedActivity;
       state.selectedActivity = updatedActivity;
     });
-    builder.addCase(updateActivityAsync.rejected, (state, action) => {
-      console.log("updateActivityAsync.rejected");
-    });
     builder.addCase(deleteActivityAsync.fulfilled, (state, action) => {
       delete state.activityRegistry[action.meta.arg.id];
       state.loading = false;
@@ -324,7 +319,6 @@ export const activitiesSlice = createSlice({
     builder.addCase(cancelActivityToggleAsync.fulfilled, (state) => {
       state.selectedActivity!.isCancelled =
         !state.selectedActivity?.isCancelled;
-
       state.activityRegistry[state.selectedActivity!.id] =
         state.selectedActivity!;
       state.loading = false;
@@ -336,16 +330,11 @@ export const activitiesSlice = createSlice({
 });
 
 export const {
-  setLoadingInitial,
-  setSelectedActivity,
+  setRetainState,
   setPagingParams,
   updateAttendeeFollowing,
   clearSelectedActivity,
   setStartDate,
   setFilter,
-  setPagination,
   resetActivityRegistry,
 } = activitiesSlice.actions;
-function mapActivityFormToActivity(arg: ActivityFormValues): Activity {
-  throw new Error("Function not implemented.");
-}

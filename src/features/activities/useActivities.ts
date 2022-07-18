@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { loadActivitiesAsync, setPagingParams } from "./activitySlice";
+import {
+  loadActivitiesAsync,
+  setPagingParams,
+  setRetainState,
+} from "./activitySlice";
 
 export default function useActivities() {
   const dispatch = useAppDispatch();
@@ -12,7 +16,7 @@ export default function useActivities() {
     startDate,
     filter,
     groupedActivities,
-    activityRegistry,
+    retainState,
   } = useAppSelector((state) => state.activities);
 
   const [loadingNext, setLoadingNext] = useState(false);
@@ -28,18 +32,19 @@ export default function useActivities() {
   };
 
   useEffect(() => {
-    if (!currentUser || Object.keys(activityRegistry).length > 1) return;
+    if (retainState) return;
     dispatch(
-      loadActivitiesAsync({ currentUser, pagingParams, startDate, filter })
+      loadActivitiesAsync({
+        currentUser: currentUser!,
+        pagingParams,
+        startDate,
+        filter,
+      })
     );
-  }, [
-    activityRegistry,
-    currentUser,
-    dispatch,
-    filter,
-    pagingParams,
-    startDate,
-  ]);
+    return () => {
+      dispatch(setRetainState());
+    };
+  }, [currentUser, dispatch, filter, pagingParams, retainState, startDate]);
 
   return {
     handleGetNext,
