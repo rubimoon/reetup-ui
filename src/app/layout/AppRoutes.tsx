@@ -29,24 +29,11 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
           />
         }
       />
-      <Route
-        path="/activities/:id"
-        element={
-          <ProtectedRoute
-            isAuthenticated={isLoggedIn}
-            outlet={<ActivityDetails />}
-          />
-        }
-      />
+      <Route path="/activities/:id" element={<ActivityDetails />} />
       <Route
         key={location.key}
         path="/createActivity"
-        element={
-          <ProtectedRoute
-            isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
-          />
-        }
+        element={<ActivityForm />}
       />
       <Route
         key={location.key}

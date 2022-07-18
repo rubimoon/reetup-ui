@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, Header, Segment } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
@@ -32,20 +32,17 @@ const ActivityForm = () => {
     (state) => state.activities
   );
   const { user } = useAppSelector((state) => state.user);
-  const initialFormValues = useMemo<ActivityFormValues>(
-    () => ({
-      title: "",
-      category: "",
-      description: "",
-      date: null,
-      city: "",
-      venue: "",
-    }),
-    []
-  );
-
-  const [formValues, setFormValues] =
-    useState<ActivityFormValues>(initialFormValues);
+  const initialFormValues = selectedActivity
+    ? mapActivityToActivityFormValues(selectedActivity)
+    : {
+        id: undefined,
+        title: "",
+        category: "",
+        description: "",
+        date: null,
+        city: "",
+        venue: "",
+      };
 
   const validationSchema = Yup.object({
     title: Yup.string().required("The activity title is required"),
@@ -57,19 +54,12 @@ const ActivityForm = () => {
   });
 
   useEffect(() => {
-    if (!user) return;
-    if (id) {
-      dispatch(loadActivityAsync({ currentUser: user, id }));
-      const formValues = mapActivityToActivityFormValues(selectedActivity!);
-      setFormValues(formValues);
-    } else {
-      setFormValues(initialFormValues);
-    }
-  }, [dispatch, id, initialFormValues, selectedActivity, user]);
+    if (!id) return;
+    dispatch(loadActivityAsync({ currentUser: user!, id }));
+  }, [dispatch, id, user]);
 
   function handleFormSubmit(formValues: ActivityFormValues) {
     if (!user) return;
-
     dispatch(resetActivityRegistry());
     if (!formValues.id) {
       let newActivity = {
@@ -82,7 +72,9 @@ const ActivityForm = () => {
         history.push(`/activities/${newActivity.id}`);
       });
     } else {
-      dispatch(updateActivityAsync(formValues)).then(() => {
+      dispatch(
+        updateActivityAsync({ currentUser: user, activity: formValues })
+      ).then(() => {
         history.push(`/activities/${formValues.id}`);
       });
     }
@@ -96,7 +88,7 @@ const ActivityForm = () => {
       <Formik
         validationSchema={validationSchema}
         enableReinitialize
-        initialValues={formValues}
+        initialValues={initialFormValues}
         onSubmit={(values) => handleFormSubmit(values)}
       >
         {({ handleSubmit, isValid, isSubmitting, dirty }) => (

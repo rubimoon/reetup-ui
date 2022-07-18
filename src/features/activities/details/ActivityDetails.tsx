@@ -21,14 +21,14 @@ const ActivityDetails = () => {
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    if (!user) return;
-    if (id) dispatch(loadActivityAsync({ currentUser: user, id }));
+    if (id) dispatch(loadActivityAsync({ currentUser: user!, id }));
     return () => {
       dispatch(clearSelectedActivity());
     };
-  }, [id, dispatch, user]);
+  }, [dispatch, id, user]);
 
   if (loadingInitial || !selectedActivity) return <LoadingComponent />;
+  console.log("selectedActivity:", selectedActivity);
 
   return (
     <Grid>

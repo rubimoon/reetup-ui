@@ -57,23 +57,13 @@ export const loadActivityAsync = createAsyncThunk<
   Activity,
   { currentUser: User; id: string },
   { state: RootState }
->(
-  "activities/loadActivityAsync",
-  async ({ currentUser, id }, { rejectWithValue, dispatch, getState }) => {
-    dispatch(setLoadingInitial(true));
-    try {
-      return await agent.Activities.details(id);
-    } catch (error: any) {
-      return rejectWithValue({ error: error.data });
-    }
-  },
-  {
-    condition: (id, thunkAPI) => {
-      const { selectedActivity } = thunkAPI.getState().activities;
-      return !selectedActivity;
-    },
+>("activities/loadActivityAsync", async ({ currentUser, id }, thunkAPI) => {
+  try {
+    return await agent.Activities.details(id);
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue({ error: error.data });
   }
-);
+});
 
 export const createActivityAsync = createAsyncThunk<
   ActivityFormValues,
@@ -95,16 +85,18 @@ export const createActivityAsync = createAsyncThunk<
 
 export const updateActivityAsync = createAsyncThunk<
   void,
-  ActivityFormValues,
+  { currentUser: User; activity: ActivityFormValues },
   { state: RootState }
->("activities/updateActivityAsync", async (selectedActivity, thunkAPI) => {
-  try {
-    console.log(selectedActivity);
-    return await agent.Activities.update(selectedActivity);
-  } catch (error: any) {
-    return thunkAPI.rejectWithValue({ error: error.data });
+>(
+  "activities/updateActivityAsync",
+  async ({ currentUser, activity }, thunkAPI) => {
+    try {
+      return await agent.Activities.update(activity);
+    } catch (error: any) {
+      return thunkAPI.rejectWithValue({ error: error.data });
+    }
   }
-});
+);
 
 export const deleteActivityAsync = createAsyncThunk<void, { id: string }>(
   "activities/deleteActivityAsync",
@@ -237,12 +229,7 @@ export const activitiesSlice = createSlice({
       state.loadingInitial = false;
     });
     builder.addCase(loadActivityAsync.pending, (state, action) => {
-      const activity = Object.values(state.activityRegistry).find(
-        (activity) => activity.id === action.meta.arg.id
-      );
-      if (activity) {
-        state.selectedActivity = activity;
-      }
+      state.loadingInitial = true;
     });
     builder.addCase(loadActivityAsync.fulfilled, (state, action) => {
       const activity = action.payload;
@@ -258,9 +245,7 @@ export const activitiesSlice = createSlice({
       state.selectedActivity = activity;
       state.loadingInitial = false;
     });
-    builder.addCase(loadActivityAsync.rejected, (state, action) => {
-      state.loadingInitial = false;
-    });
+    builder.addCase(loadActivityAsync.rejected, (state, action) => {});
     builder.addCase(createActivityAsync.fulfilled, (state, action) => {
       console.log("createActivityAsync.fulfilled");
       const newActivity = mapActivityFormValueToActivity(
@@ -278,22 +263,31 @@ export const activitiesSlice = createSlice({
       newActivity.host = newActivity.attendees?.find(
         (x) => x.username === newActivity.hostUsername
       );
-      state.activityRegistry = { ...state.activityRegistry, newActivity };
+
+      state.activityRegistry[newActivity.id] = newActivity;
+      state.selectedActivity = newActivity;
+      state.loadingInitial = false;
     });
 
     builder.addCase(updateActivityAsync.fulfilled, (state, action) => {
-      const activity = action.meta.arg;
-      if (activity.id) {
-        let oldActivity = Object.values(state.activityRegistry).find(
-          (activity) => activity.id === action.meta.arg.id
-        );
-        let updatedActivity = {
-          ...oldActivity,
-          ...activity,
-        } as Activity;
-        state.activityRegistry = { ...state.activityRegistry, updatedActivity };
-        state.selectedActivity = updatedActivity as Activity;
-      }
+      const updatedActivity = mapActivityFormValueToActivity(
+        action.meta.arg.activity
+      );
+      const currentUser = action.meta.arg.currentUser;
+
+      const attendee = mapUserToProfile(currentUser!);
+      updatedActivity.hostUsername = currentUser!.username;
+      updatedActivity.attendees = [attendee];
+      updatedActivity.isGoing = updatedActivity.attendees!.some(
+        (a) => a.username === currentUser.username
+      );
+      updatedActivity.isHost =
+        updatedActivity.hostUsername === currentUser.username;
+      updatedActivity.host = updatedActivity.attendees?.find(
+        (x) => x.username === updatedActivity.hostUsername
+      );
+      state.activityRegistry[updatedActivity.id] = updatedActivity;
+      state.selectedActivity = updatedActivity;
     });
     builder.addCase(updateActivityAsync.rejected, (state, action) => {
       console.log("updateActivityAsync.rejected");
@@ -352,3 +346,6 @@ export const {
   setPagination,
   resetActivityRegistry,
 } = activitiesSlice.actions;
+function mapActivityFormToActivity(arg: ActivityFormValues): Activity {
+  throw new Error("Function not implemented.");
+}

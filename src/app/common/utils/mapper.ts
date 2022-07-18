@@ -16,4 +16,12 @@ export const mapUserToProfile = (user: User): Profile => ({
 });
 
 export const mapActivityToActivityFormValues = (activity: Activity) =>
-  Object.assign({}, activity) as ActivityFormValues;
+  ({
+    id: activity.id,
+    title: activity.title,
+    category: activity.category,
+    description: activity.description,
+    date: activity.date,
+    city: activity.city,
+    venue: activity.venue,
+  } as ActivityFormValues);
