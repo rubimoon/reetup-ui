@@ -10,13 +10,20 @@ import ConfirmEmail from "../../features/users/ConfirmEmail";
 import ServerError from "../errors/ui/ServerError";
 import TestErrors from "../errors/ui/TestError";
 import ProfilePage from "../../features/profiles/layout/ProfilePage";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "../store/configureStore";
+import { getCurrentUserAysnc } from "../../features/users/userSlice";
 
 interface Props {
   location: any;
-  isLoggedIn: boolean;
 }
 
-const AppRoutes = ({ location, isLoggedIn }: Props) => {
+const AppRoutes = ({ location }: Props) => {
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.user.user);
+  useEffect(() => {
+    dispatch(getCurrentUserAysnc());
+  }, [dispatch]);
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
@@ -24,7 +31,7 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
         path="/activities"
         element={
           <ProtectedRoute
-            isAuthenticated={isLoggedIn}
+            isAuthenticated={!!user}
             outlet={<ActivityDashboard />}
           />
         }
@@ -33,7 +40,7 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
         path="/activities/:id"
         element={
           <ProtectedRoute
-            isAuthenticated={isLoggedIn}
+            isAuthenticated={!!user}
             outlet={<ActivityDetails />}
           />
         }
@@ -42,29 +49,20 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
         key={location.key}
         path="/createActivity"
         element={
-          <ProtectedRoute
-            isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
-          />
+          <ProtectedRoute isAuthenticated={!!user} outlet={<ActivityForm />} />
         }
       />
       <Route
         key={location.key}
         path="/manage/:id"
         element={
-          <ProtectedRoute
-            isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
-          />
+          <ProtectedRoute isAuthenticated={!!user} outlet={<ActivityForm />} />
         }
       />
       <Route
         path="/profiles/:username"
         element={
-          <ProtectedRoute
-            isAuthenticated={isLoggedIn}
-            outlet={<ProfilePage />}
-          />
+          <ProtectedRoute isAuthenticated={!!user} outlet={<ProfilePage />} />
         }
       />
       <Route path="/errors" element={<TestErrors />} />

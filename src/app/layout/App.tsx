@@ -17,24 +17,14 @@ const App = () => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { token, appLoaded } = useAppSelector((state) => state.common);
-  const currentUser = useAppSelector((state) => state.user.user);
 
   useEffect(() => {
     if (token) {
       window.localStorage.setItem("jwt", token);
-      dispatch(getCurrentUserAysnc())
-        .catch((err) => {
-          console.log(err);
-        })
-        .then(() => {
-          dispatch(setAppLoaded());
-        });
     } else {
       window.localStorage.removeItem("jwt");
-      dispatch(getFacebookLoginStatusAsync()).then(() => {
-        dispatch(setAppLoaded());
-      });
     }
+    dispatch(setAppLoaded());
   }, [dispatch, token]);
 
   if (!appLoaded) return <LoadingComponent content="Loading app..." />;
@@ -45,7 +35,7 @@ const App = () => {
       <ToastContainer position="bottom-right" hideProgressBar />
       <NavBar />
       <Container style={{ marginTop: "7em" }}>
-        <AppRoutes location={location} isLoggedIn={!!currentUser} />
+        <AppRoutes location={location} />
       </Container>
     </>
   );
