@@ -71,7 +71,7 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
       <Route path="/server-error" element={<ServerError />} />
       <Route path="/account/registerSuccess" element={<RegisterSuccess />} />
       <Route path="/account/verifyEmail" element={<ConfirmEmail />} />
-      <Route element={<NotFound />} /> */
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
