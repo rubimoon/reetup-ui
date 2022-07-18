@@ -11,6 +11,9 @@ import ServerError from "../errors/ui/ServerError";
 import TestErrors from "../errors/ui/TestError";
 import ProfilePage from "../../features/profiles/layout/ProfilePage";
 import { useAppSelector } from "../store/configureStore";
+import NavBar from "./NavBar";
+import { Container } from "semantic-ui-react";
+
 interface Props {
   location: any;
 }
@@ -18,6 +21,15 @@ interface Props {
 const AppRoutes = ({ location }: Props) => {
   const { user } = useAppSelector((state) => state.user);
   const isLoggedIn = !!user;
+
+  const wrapper = (Children: () => JSX.Element) => (
+    <>
+      <NavBar />
+      <Container style={{ marginTop: "7em" }}>
+        <Children />
+      </Container>
+    </>
+  );
 
   return (
     <Routes>
@@ -27,7 +39,7 @@ const AppRoutes = ({ location }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityDashboard />}
+            outlet={wrapper(ActivityDashboard)}
           />
         }
       />
@@ -36,7 +48,7 @@ const AppRoutes = ({ location }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityDetails />}
+            outlet={wrapper(ActivityDetails)}
           />
         }
       />
@@ -46,7 +58,7 @@ const AppRoutes = ({ location }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
+            outlet={wrapper(ActivityForm)}
           />
         }
       />
@@ -56,7 +68,7 @@ const AppRoutes = ({ location }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
+            outlet={wrapper(ActivityForm)}
           />
         }
       />
@@ -65,15 +77,18 @@ const AppRoutes = ({ location }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ProfilePage />}
+            outlet={wrapper(ProfilePage)}
           />
         }
       />
-      <Route path="/errors" element={<TestErrors />} />
-      <Route path="/server-error" element={<ServerError />} />
-      <Route path="/account/registerSuccess" element={<RegisterSuccess />} />
-      <Route path="/account/verifyEmail" element={<ConfirmEmail />} />
-      <Route path="*" element={<NotFound />} />
+      <Route path="/errors" element={wrapper(TestErrors)} />
+      <Route path="/server-error" element={wrapper(ServerError)} />
+      <Route
+        path="/account/registerSuccess"
+        element={wrapper(RegisterSuccess)}
+      />
+      <Route path="/account/verifyEmail" element={wrapper(ConfirmEmail)} />
+      <Route path="*" element={wrapper(NotFound)} />
     </Routes>
   );
 };
