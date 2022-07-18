@@ -5,7 +5,6 @@ import {
   mapActivityFormValueToActivity,
   mapUserToProfile,
 } from "../../app/common/utils/mapper";
-import { setError } from "../../app/errors/errorSlice";
 import { Activity, ActivityFormValues } from "../../app/models/activity";
 import { PaginatedResult, PagingParams } from "../../app/models/pagination";
 import { User } from "../../app/models/user";
@@ -32,7 +31,6 @@ export const loadActivitiesAsync = createAsyncThunk<
     try {
       return await agent.Activities.list(params);
     } catch (error: any) {
-      thunkAPI.dispatch(setError(error.status));
       return thunkAPI.rejectWithValue({ error: error.data });
     }
   }

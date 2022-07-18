@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import HomePage from "../../features/home/HomePage";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import ActivityDashboard from "../../features/activities/dashboard/ActivityDashboard";
