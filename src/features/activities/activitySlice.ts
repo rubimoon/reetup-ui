@@ -193,7 +193,6 @@ export const activitiesSlice = createSlice({
       );
       state.groupedActivities = arr;
       state.loadingInitial = false;
-      console.log("activities ", state.activityRegistry);
     });
     builder.addCase(loadActivitiesAsync.rejected, (state) => {
       state.loadingInitial = false;
