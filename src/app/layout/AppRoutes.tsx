@@ -1,31 +1,54 @@
 import { Route, Routes } from "react-router-dom";
 import HomePage from "../../features/home/HomePage";
-import ProtectedRoute from "./PrivateRoute";
+import ProtectedRoute from "../auth/ProtectedRoute";
 import ActivityDashboard from "../../features/activities/dashboard/ActivityDashboard";
 import ActivityDetails from "../../features/activities/details/ActivityDetails";
 import ActivityForm from "../../features/activities/form/ActivityForm";
-import NotFound from "../../features/errors/NotFound";
+import NotFound from "../errors/ui/NotFound";
 import RegisterSuccess from "../../features/users/RegisterSuccess";
 import ConfirmEmail from "../../features/users/ConfirmEmail";
-import ServerError from "../../features/errors/ServerError";
-import TestErrors from "../../features/errors/TestError";
+import ServerError from "../errors/ui/ServerError";
+import TestErrors from "../errors/ui/TestError";
+import ProfilePage from "../../features/profiles/layout/ProfilePage";
+import { useAppSelector } from "../store/configureStore";
+import NavBar from "./NavBar";
+import { Container } from "semantic-ui-react";
 
 interface Props {
   location: any;
-  isLoggedIn: boolean;
 }
 
-const AppRoutes = ({ location, isLoggedIn }: Props) => {
+const AppRoutes = ({ location }: Props) => {
+  const { user } = useAppSelector((state) => state.user);
+  const isLoggedIn = !!user;
+
+  const wrapper = (Children: () => JSX.Element) => (
+    <>
+      <NavBar />
+      <Container style={{ marginTop: "7em" }}>
+        <Children />
+      </Container>
+    </>
+  );
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/activities" element={<ActivityDashboard />} />
+      <Route
+        path="/activities"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isLoggedIn}
+            outlet={wrapper(ActivityDashboard)}
+          />
+        }
+      />
       <Route
         path="/activities/:id"
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityDetails />}
+            outlet={wrapper(ActivityDetails)}
           />
         }
       />
@@ -35,7 +58,7 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
+            outlet={wrapper(ActivityForm)}
           />
         }
       />
@@ -45,30 +68,27 @@ const AppRoutes = ({ location, isLoggedIn }: Props) => {
         element={
           <ProtectedRoute
             isAuthenticated={isLoggedIn}
-            outlet={<ActivityForm />}
+            outlet={wrapper(ActivityForm)}
           />
         }
       />
-      <Route path="/errors" element={<TestErrors />} />
-      <Route path="/server-error" element={<ServerError />} />
-      <Route path="/account/registerSuccess" element={<RegisterSuccess />} />
-      <Route path="/account/verifyEmail" element={<ConfirmEmail />} />
-      <Route path="not-found" element={<NotFound />} />
-
-      {/* <PrivateRoute
-          path="/profiles/:username"
-          element={
-            <ProtectedRoute
-              isAuthenticated={isLoggedIn}
-              outlet={<ProfilePage />}
-            />
-          }
-        /> */}
-      {/* 
-      
-
-      
-        <Route element={NotFound} /> */}
+      <Route
+        path="/profiles/:username"
+        element={
+          <ProtectedRoute
+            isAuthenticated={isLoggedIn}
+            outlet={wrapper(ProfilePage)}
+          />
+        }
+      />
+      <Route path="/errors" element={wrapper(TestErrors)} />
+      <Route path="/server-error" element={wrapper(ServerError)} />
+      <Route
+        path="/account/registerSuccess"
+        element={wrapper(RegisterSuccess)}
+      />
+      <Route path="/account/verifyEmail" element={wrapper(ConfirmEmail)} />
+      <Route path="*" element={wrapper(NotFound)} />
     </Routes>
   );
 };

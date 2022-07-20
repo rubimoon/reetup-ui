@@ -7,37 +7,37 @@ import {
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { clearSelectedActivity, loadActivityAsync } from "../activitySlice";
-import ActivityDetailedChat from "./ActivityDetailedChat";
+import ActivityDetailedChat from "./comments/ActivityDetailedChat";
 import ActivityDetailedInfo from "./ActivityDetailedInfo";
 import ActivityDetailedSidebar from "./ActivityDetailedSidebar";
 import ActivityDetailedHeader from "./ActivityDetaledHeader";
 
 const ActivityDetails = () => {
   const dispatch = useAppDispatch();
-  const { selectedActivity: activity, loadingInitial } = useAppSelector(
+  const { selectedActivity, loadingInitial } = useAppSelector(
     (state) => state.activities
   );
+  const user = useAppSelector((state) => state.user.user);
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    // TODO
-    if (id) {
-      dispatch(loadActivityAsync({ id }));
-    }
-    clearSelectedActivity();
-  }, [id, dispatch]);
+    if (id) dispatch(loadActivityAsync({ currentUser: user!, id }));
+    return () => {
+      dispatch(clearSelectedActivity());
+    };
+  }, [dispatch, id, user]);
 
-  if (loadingInitial || !activity) return <LoadingComponent />;
+  if (loadingInitial || !selectedActivity) return <LoadingComponent />;
 
   return (
     <Grid>
       <Grid.Column width={10}>
-        <ActivityDetailedHeader activity={activity} />
-        <ActivityDetailedInfo activity={activity} />
-        <ActivityDetailedChat activityId={activity.id} />
+        <ActivityDetailedHeader activity={selectedActivity} />
+        <ActivityDetailedInfo activity={selectedActivity} />
+        <ActivityDetailedChat activity={selectedActivity} />
       </Grid.Column>
       <Grid.Column width={6}>
-        <ActivityDetailedSidebar activity={activity} />
+        <ActivityDetailedSidebar activity={selectedActivity} />
       </Grid.Column>
     </Grid>
   );

@@ -1,14 +1,14 @@
-import axios from 'axios';
-import { Photo, Profile, UserActivity } from '../../models/profile';
-import { requests } from './base';
+import axios from "axios";
+import { Photo, Profile, UserActivity } from "../../models/profile";
+import { requests } from "./base";
 
 export const Profiles = {
   get: (username: string) => requests.get<Profile>(`/profiles/${username}`),
   uploadPhoto: (file: Blob) => {
     let formData = new FormData();
-    formData.append('File', file);
-    return axios.post<Photo>('photos', formData, {
-      headers: { 'Content-type': 'multipart/form-data' },
+    formData.append("File", file);
+    return axios.post<Photo>("photos", formData, {
+      headers: { "Content-type": "multipart/form-data" },
     });
   },
   setMainPhoto: (id: string) => requests.post(`/photos/${id}/setMain`, {}),

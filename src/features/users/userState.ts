@@ -5,10 +5,12 @@ export interface UserState {
   fbAccessToken: string | null;
   fbLoading: boolean;
   refreshTokenTimeout?: any;
+  email: string;
 }
 
 export const initialState: UserState = {
   user: null,
   fbAccessToken: null,
   fbLoading: false,
+  email: "",
 };

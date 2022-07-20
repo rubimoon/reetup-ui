@@ -1,36 +1,64 @@
+import { useState } from "react";
 import Calendar from "react-calendar";
 import { Header, Menu } from "semantic-ui-react";
-import { useAppSelector } from "../../../app/store/configureStore";
-import { setPredicate } from "../activitySlice";
+import {
+  useAppDispatch,
+  useAppSelector,
+} from "../../../app/store/configureStore";
+import {
+  resetActivityRegistry,
+  setFilter,
+  setStartDate,
+} from "../activitySlice";
+import { ActivityFilter } from "../activityState";
 
 const ActivityFilters = () => {
-  const { predicate } = useAppSelector((state) => state.activities);
+  const { filter } = useAppSelector((state) => state.activities);
+  const [dateValue, setDateValue] = useState<Date>(new Date());
+  const dispatch = useAppDispatch();
+
+  const handleStartDate = (date: any) => {
+    setDateValue(new Date(date));
+    const plainDate = dateValue.toISOString();
+    dispatch(resetActivityRegistry());
+    dispatch(setStartDate(plainDate));
+  };
+
+  const handleFilter = (filter: ActivityFilter) => {
+    dispatch(resetActivityRegistry());
+    dispatch(setFilter(filter));
+  };
+
   return (
     <>
       <Menu vertical size="large" style={{ width: "100%", marginTop: 25 }}>
         <Header icon="filter" attached color="teal" content="Filters" />
         <Menu.Item
           content="All Activites"
-          active={predicate.has("all")}
-          onClick={() => setPredicate({ predicate: "all", value: "true" })}
+          active={filter === "all"}
+          onClick={() => {
+            handleFilter("all");
+          }}
         />
         <Menu.Item
           content="I'm going"
-          active={predicate.has("isGoing")}
-          onClick={() => setPredicate({ predicate: "isGoing", value: "true" })}
+          active={filter === "isGoing"}
+          onClick={() => {
+            handleFilter("isGoing");
+          }}
         />
         <Menu.Item
           content="I'm hosting"
-          active={predicate.has("isHost")}
-          onClick={() => setPredicate({ predicate: "isHost", value: "true" })}
+          active={filter === "isHost"}
+          onClick={() => {
+            handleFilter("isHost");
+          }}
         />
       </Menu>
       <Header />
       <Calendar
-        onChange={(date: any) =>
-          setPredicate({ predicate: "startDate", value: date as Date })
-        }
-        value={predicate.get("startDate") || new Date()}
+        onChange={(date: any) => handleStartDate(date)}
+        value={dateValue || new Date()}
       />
     </>
   );

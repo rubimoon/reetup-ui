@@ -4,7 +4,7 @@ import { Button, Header, Icon, Segment } from "semantic-ui-react";
 import agent from "../../app/api/agent";
 import useQuery from "../../app/common/hooks/useQuery";
 import { useAppDispatch } from "../../app/store/configureStore";
-import { openModal } from "../../app/store/modalSlice";
+import { openModal } from "../../app/common/modals/modalSlice";
 import LoginForm from "./LoginForm";
 
 export default function ConfirmEmail() {

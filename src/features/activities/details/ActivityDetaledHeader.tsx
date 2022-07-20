@@ -29,9 +29,22 @@ interface Props {
 }
 
 const ActivityDetailedHeader = ({ activity }: Props) => {
-  const { loading } = useAppSelector((state) => state.activities);
+  const { loading, selectedActivity } = useAppSelector(
+    (state) => state.activities
+  );
+  const currentUser = useAppSelector((state) => state.user.user);
 
   const dispatch = useAppDispatch();
+
+  const handleUpdateAttendanceAsync = () => {
+    if (currentUser) dispatch(updateAttendanceAsync({ currentUser }));
+  };
+
+  const handleDeleteActivity = () => {
+    if (!selectedActivity) return;
+    dispatch(cancelActivityToggleAsync(selectedActivity));
+  };
+
   return (
     <Segment.Group>
       <Segment basic attached="top" style={{ padding: "0" }}>
@@ -57,9 +70,9 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
                   content={activity.title}
                   style={{ color: "white" }}
                 />
-                <p>{format(activity.date!, "dd MMM yyyy")}</p>
+                <p>{format(new Date(activity.date!), "dd MMM yyyy")}</p>
                 <p>
-                  Hosted by{" "}
+                  Hosted by{activity.hostUsername}
                   <strong>
                     <Link to={`/profiles/${activity.host?.username}`}>
                       {activity.host?.displayName}
@@ -83,9 +96,7 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
                   ? "Re-activate Activity"
                   : "Cancel Activity"
               }
-              onClick={() => {
-                dispatch(cancelActivityToggleAsync());
-              }}
+              onClick={handleDeleteActivity}
               loading={loading}
             />
             <Button
@@ -99,17 +110,14 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
             </Button>
           </>
         ) : activity.isGoing ? (
-          <Button
-            loading={loading}
-            onClick={() => dispatch(updateAttendanceAsync)}
-          >
+          <Button loading={loading} onClick={handleUpdateAttendanceAsync}>
             Cancel attendance
           </Button>
         ) : (
           <Button
             disabled={activity.isCancelled}
             loading={loading}
-            onClick={() => dispatch(updateAttendanceAsync)}
+            onClick={handleUpdateAttendanceAsync}
             color="teal"
           >
             Join Activity

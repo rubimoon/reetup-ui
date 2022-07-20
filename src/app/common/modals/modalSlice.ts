@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 interface Modal {
   open: boolean;
-  body: JSX.Element | null;
+  modalType: string | null;
 }
 
 interface ModalState {
@@ -12,7 +12,7 @@ interface ModalState {
 const initialState: ModalState = {
   modal: {
     open: false,
-    body: null,
+    modalType: null,
   },
 };
 
@@ -22,11 +22,11 @@ export const modalSlice = createSlice({
   reducers: {
     openModal: (state, action) => {
       state.modal.open = true;
-      state.modal.body = action.payload;
+      state.modal.modalType = action.payload;
     },
     closeModal: (state) => {
       state.modal.open = false;
-      state.modal.body = null;
+      state.modal.modalType = null;
     },
   },
 });

@@ -1,5 +1,5 @@
 import { Formik, Form, Field, FieldProps } from "formik";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Segment, Header, Comment, Loader } from "semantic-ui-react";
 
@@ -7,29 +7,77 @@ import * as Yup from "yup";
 import { formatDistanceToNow } from "date-fns";
 import {
   addCommentAsync,
+  appendComment,
   clearComments,
-  createHubConnection,
+  setComments,
 } from "./commentSlice";
 import {
   useAppDispatch,
   useAppSelector,
-} from "../../../app/store/configureStore";
+} from "../../../../app/store/configureStore";
+import { Activity } from "../../../../app/models/activity";
+import {
+  HubConnection,
+  HubConnectionBuilder,
+  LogLevel,
+} from "@microsoft/signalr";
+import { ChatComment } from "../../../../app/models/comment";
 
 interface Props {
-  activityId: string;
+  activity: Activity;
 }
 
-const ActivityDetailedChat = ({ activityId }: Props) => {
+const ActivityDetailedChat = ({ activity }: Props) => {
   const dispatch = useAppDispatch();
   const comments = useAppSelector((state) => state.comment.comments);
+  const [hubConnection, setHubConnection] = useState<HubConnection>();
+  const currentUser = useAppSelector((state) => state.user.user);
+  const selectedActivity = useAppSelector(
+    (state) => state.activities.selectedActivity
+  );
+
   useEffect(() => {
-    if (activityId) {
-      createHubConnection(activityId);
+    if (!activity || !currentUser) return;
+
+    if (!hubConnection) {
+      setHubConnection(
+        new HubConnectionBuilder()
+          .withUrl(
+            process.env.REACT_APP_CHAT_URL + "?activityId=" + activity.id,
+            {
+              accessTokenFactory: () => currentUser?.token!,
+            }
+          )
+          .withAutomaticReconnect()
+          .configureLogging(LogLevel.Information)
+          .build()
+      );
     }
+
+    if (!hubConnection) return;
+
+    hubConnection
+      .start()
+      .catch((error) =>
+        console.log("Error establishing the connection: ", error)
+      );
+
+    hubConnection.on("LoadComments", (chatComments: ChatComment[]) => {
+      chatComments.forEach((chatComment) => {
+        chatComment.createdAt = new Date(chatComment.createdAt).toISOString();
+      });
+      dispatch(setComments(chatComments));
+    });
+
+    hubConnection.on("ReceiveComment", (chatComment: ChatComment) => {
+      chatComment.createdAt = new Date(chatComment.createdAt).toISOString();
+      dispatch(appendComment(chatComment));
+    });
+
     return () => {
-      clearComments();
+      dispatch(clearComments());
     };
-  }, [activityId]);
+  }, [activity, currentUser, dispatch, hubConnection]);
 
   return (
     <>
@@ -44,9 +92,17 @@ const ActivityDetailedChat = ({ activityId }: Props) => {
       </Segment>
       <Segment attached clearing>
         <Formik
-          onSubmit={(values, { resetForm }) =>
-            dispatch(addCommentAsync({ values })).then(() => resetForm())
-          }
+          onSubmit={(values, { resetForm }) => {
+            if (selectedActivity && hubConnection) {
+              dispatch(
+                addCommentAsync({
+                  connection: hubConnection,
+                  values,
+                  selectedActivity,
+                })
+              ).then(() => resetForm());
+            }
+          }}
           initialValues={{ body: "" }}
           validationSchema={Yup.object({
             body: Yup.string().required(),
@@ -87,7 +143,9 @@ const ActivityDetailedChat = ({ activityId }: Props) => {
                   {comment.displayName}
                 </Comment.Author>
                 <Comment.Metadata>
-                  <div>{formatDistanceToNow(comment.createdAt)} ago</div>
+                  <div>
+                    {formatDistanceToNow(new Date(comment.createdAt))} ago
+                  </div>
                 </Comment.Metadata>
                 <Comment.Text style={{ whiteSpace: "pre-wrap" }}>
                   {comment.body}
