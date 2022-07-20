@@ -1,17 +1,15 @@
-import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { HubConnection } from "@microsoft/signalr";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { Activity } from "../../../../app/models/activity";
-import { ChatComment } from "../../../../app/models/comment";
 import { RootState } from "../../../../app/store/configureStore";
-import { CreateHubConnectionState, initialState } from "./commentState";
+import { initialState } from "./commentState";
 
 export const addCommentAsync = createAsyncThunk<
   void,
-  { values: any; selectedActivity: Activity },
+  { connection: HubConnection; values: any; selectedActivity: Activity },
   { state: RootState }
->("comment/addCommentAsync", async ({ values }, thunkAPI) => {
+>("comment/addCommentAsync", async ({ connection, values }, thunkAPI) => {
   try {
-    const connection = thunkAPI.getState().comment.hubConnection;
     await connection?.invoke("SendComment", values);
   } catch (error: any) {
     thunkAPI.rejectWithValue({ error: error.data });
@@ -22,42 +20,6 @@ export const commentSlice = createSlice({
   name: "comment",
   initialState,
   reducers: {
-    createHubConnection: (
-      state,
-      action: PayloadAction<CreateHubConnectionState>
-    ) => {
-      const { activity, currentUser } = action.payload;
-      if (activity) {
-        state.hubConnection = new HubConnectionBuilder()
-          .withUrl(
-            process.env.REACT_APP_CHAT_URL + "?activityId=" + action.payload,
-            {
-              accessTokenFactory: () => currentUser?.token!,
-            }
-          )
-          .withAutomaticReconnect()
-          .configureLogging(LogLevel.Information)
-          .build();
-
-        state.hubConnection
-          .start()
-          .catch((error) =>
-            console.log("Error establishing the connection: ", error)
-          );
-
-        state.hubConnection.on("LoadComments", (comments: ChatComment[]) => {
-          comments.forEach((comment) => {
-            comment.createdAt = new Date(comment.createdAt + "Z");
-          });
-          state.comments = comments;
-        });
-
-        state.hubConnection.on("ReceiveComment", (comment: ChatComment) => {
-          comment.createdAt = new Date(comment.createdAt);
-          state.comments.unshift(comment);
-        });
-      }
-    },
     stopHubConnection: (state) => {
       state.hubConnection
         ?.stop()
@@ -66,6 +28,12 @@ export const commentSlice = createSlice({
     clearComments: (state) => {
       state.comments = [];
       stopHubConnection();
+    },
+    setComments: (state, action) => {
+      state.comments = action.payload;
+    },
+    appendComment: (state, action) => {
+      state.comments = [...state.comments, action.payload];
     },
   },
   extraReducers: (builder) => {
@@ -76,5 +44,5 @@ export const commentSlice = createSlice({
   },
 });
 
-export const { createHubConnection, stopHubConnection, clearComments } =
+export const { stopHubConnection, clearComments, setComments, appendComment } =
   commentSlice.actions;
