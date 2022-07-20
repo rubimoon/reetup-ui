@@ -13,7 +13,17 @@
 
 # misc
 .DS_Store
+<<<<<<< HEAD
 .env*
+=======
+.env.local
+.env.development
+.env.development.local
+.env.test.local
+.env.production
+.env.production.local
+
+>>>>>>> d01473c9a0976f0145cd97738b280f520ca24178
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

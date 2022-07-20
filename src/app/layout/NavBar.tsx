@@ -1,13 +1,19 @@
 import { Link, NavLink } from "react-router-dom";
 import { Button, Container, Menu, Image, Dropdown } from "semantic-ui-react";
 import { logout } from "../../features/users/userSlice";
+import { setToken } from "../store/commonSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
+import { history } from "../..";
 
 const NavBar = () => {
-  const { user } = useAppSelector((state) => state.user);
+  const user = useAppSelector((state) => state.user.user);
   const dispatch = useAppDispatch();
   const isLoggedIn = !!user;
-  const handleLogout = () => dispatch(logout());
+  const handleLogout = () => {
+    dispatch(setToken(null));
+    dispatch(logout());
+    history.push("/");
+  };
 
   return (
     <Menu inverted fixed="top">

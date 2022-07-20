@@ -3,6 +3,7 @@ import "react-toastify/dist/ReactToastify.min.css";
 import "react-datepicker/dist/react-datepicker.css";
 import "./app/layout/styles.css";
 import ReactDOM from "react-dom";
+import { ErrorBoundary } from "react-error-boundary";
 import { store } from "./app/store/configureStore";
 import App from "./app/layout/App";
 import reportWebVitals from "./reportWebVitals";
@@ -10,16 +11,20 @@ import ScrollToTop from "./app/layout/ScrollToTop";
 import { Provider } from "react-redux";
 import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";
 import { createBrowserHistory } from "history";
+import { ErrorFallback } from "./app/errors/ErrorFallback";
 
 export const history = createBrowserHistory();
 
 ReactDOM.render(
-  <Provider store={store}>
-    <HistoryRouter history={history}>
-      <ScrollToTop />
-      <App />
-    </HistoryRouter>
-  </Provider>,
+  <ErrorBoundary FallbackComponent={ErrorFallback}>
+    <Provider store={store}>
+      <HistoryRouter history={history}>
+        <ScrollToTop />
+        <App />
+      </HistoryRouter>
+    </Provider>
+  </ErrorBoundary>,
+
   document.getElementById("root")
 );
 

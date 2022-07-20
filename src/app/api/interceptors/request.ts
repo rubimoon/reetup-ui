@@ -1,8 +1,12 @@
 import { AxiosRequestConfig } from "axios";
+import { store } from "../../store/configureStore";
 
-const setToken = (config: AxiosRequestConfig, token: string) => {
-  config.headers!.Authorization = `Bearer ${token}`;
-  // TODO
+const setTokenHeader = (config: AxiosRequestConfig) => {
+  const token = store.getState().common.token;
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 };
 
-export { setToken };
+export { setTokenHeader };

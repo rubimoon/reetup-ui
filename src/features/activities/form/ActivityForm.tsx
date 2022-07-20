@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, Header, Segment } from "semantic-ui-react";
 import LoadingComponent from "../../../app/layout/LoadingComponent";
@@ -12,8 +12,10 @@ import { categoryOptions } from "../../../app/common/options/categoryOptions";
 import MyDateInput from "../../../app/common/form/MyDateInput";
 import { ActivityFormValues } from "../../../app/models/activity";
 import {
+  clearSelectedActivity,
   createActivityAsync,
   loadActivityAsync,
+  resetActivityRegistry,
   updateActivityAsync,
 } from "../activitySlice";
 import {
@@ -21,15 +23,27 @@ import {
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { history } from "../../..";
+import { mapActivityToActivityFormValues } from "../../../app/common/utils/mapper";
 
 const ActivityForm = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
 
-  const { loadingInitial } = useAppSelector((state) => state.activities);
-  const [formValues, setFormValues] = useState<ActivityFormValues>(
-    new ActivityFormValues()
+  const { loadingInitial, selectedActivity } = useAppSelector(
+    (state) => state.activities
   );
+  const { user } = useAppSelector((state) => state.user);
+  const initialFormValues = selectedActivity
+    ? mapActivityToActivityFormValues(selectedActivity)
+    : {
+        id: undefined,
+        title: "",
+        category: "",
+        description: "",
+        date: null,
+        city: "",
+        venue: "",
+      };
 
   const validationSchema = Yup.object({
     title: Yup.string().required("The activity title is required"),
@@ -41,26 +55,31 @@ const ActivityForm = () => {
   });
 
   useEffect(() => {
-    if (id) {
-      dispatch(loadActivityAsync({ id })).then(() => {
-        setFormValues(new ActivityFormValues());
-      });
-    }
-  }, [dispatch, id]);
+    dispatch(clearSelectedActivity());
+    if (!id) return;
+    dispatch(loadActivityAsync({ currentUser: user!, id }));
+  }, [dispatch, id, user]);
 
-  function handleFormSubmit(activity: ActivityFormValues) {
-    if (!activity.id) {
+  function handleFormSubmit(formValues: ActivityFormValues) {
+    if (!user) return;
+    dispatch(resetActivityRegistry());
+    if (!formValues.id) {
       let newActivity = {
-        ...activity,
+        ...formValues,
         id: uuid(),
       };
-      dispatch(createActivityAsync({ activity: newActivity })).then(() =>
-        history.push(`/activities/${newActivity.id}`)
-      );
+      newActivity.date = new Date(newActivity.date!).toISOString();
+      dispatch(
+        createActivityAsync({ currentUser: user, activity: newActivity })
+      ).then(() => {
+        history.push(`/activities/${newActivity.id}`);
+      });
     } else {
-      dispatch(updateActivityAsync({ activity })).then(() =>
-        history.push(`/activities/${activity.id}`)
-      );
+      dispatch(
+        updateActivityAsync({ currentUser: user, activity: formValues })
+      ).then(() => {
+        history.push(`/activities/${formValues.id}`);
+      });
     }
   }
 
@@ -72,7 +91,7 @@ const ActivityForm = () => {
       <Formik
         validationSchema={validationSchema}
         enableReinitialize
-        initialValues={formValues}
+        initialValues={initialFormValues}
         onSubmit={(values) => handleFormSubmit(values)}
       >
         {({ handleSubmit, isValid, isSubmitting, dirty }) => (

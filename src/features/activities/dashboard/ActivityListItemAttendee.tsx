@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Image, List, Popup } from "semantic-ui-react";
 import { Profile } from "../../../app/models/profile";
-// import ProfileCard from "../../profiles/ProfileCard";
+import ProfileCard from "../../profiles/layout/ProfileCard";
 
 interface Props {
   attendees: Profile[];
@@ -37,7 +37,7 @@ const ActivityListItemAttendee = ({ attendees }: Props) => {
         >
           <Popup.Content>
             ProfileCard
-            {/* <ProfileCard profile={attendee} /> */}
+            <ProfileCard profile={attendee} />
           </Popup.Content>
         </Popup>
       ))}

@@ -1,16 +1,26 @@
 import { AxiosError, AxiosResponse } from "axios";
-import { PaginatedResult } from "../../models/pagination";
+import { store } from "../../store/configureStore";
 import { toast } from "react-toastify";
 import { history } from "../../..";
 import { setServerError } from "../../store/commonSlice";
 import { logout } from "../../../features/users/userSlice";
+import { delay } from "../../common/utils";
 
-interface ResponseError {
-  errors: { [key: string]: [] };
-}
+const getPagination = async (response: AxiosResponse) => {
+  if (process.env.NODE_ENV === "development") await delay(100);
+  const pagination = response.headers["pagination"];
+  if (pagination) {
+    response.data = {
+      data: response.data,
+      pagination: JSON.parse(pagination),
+    };
+    return response;
+  }
+  return response;
+};
 
-const responseError = (error: AxiosError<ResponseError>) => {
-  const { data, status, config, headers } = error.response!;
+const responseError = (error: AxiosError) => {
+  const { data, status, config, headers } = error.response! as AxiosResponse;
   switch (status) {
     case 400:
       if (config.method === "get" && data.errors.hasOwnProperty("id")) {
@@ -33,7 +43,7 @@ const responseError = (error: AxiosError<ResponseError>) => {
         status === 401 &&
         headers["www-authenticate"]?.startsWith('Bearer error="invalid_token"')
       ) {
-        logout();
+        store.dispatch(logout());
         toast.error("Session expired - please login again");
       }
       break;
@@ -41,16 +51,11 @@ const responseError = (error: AxiosError<ResponseError>) => {
       history.push("/not-found");
       break;
     case 500:
-      setServerError(data);
+      store.dispatch(setServerError(data));
       history.push("/server-error");
       break;
   }
   return Promise.reject(error);
 };
 
-const addPagination = (pagination: any, response: AxiosResponse<any>) => {
-  response.data = new PaginatedResult(response.data, JSON.parse(pagination));
-  return response as AxiosResponse<PaginatedResult<any>>;
-};
-
-export { responseError, addPagination };
+export { responseError, getPagination };

@@ -8,13 +8,10 @@ import {
   Divider,
 } from "semantic-ui-react";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { openModal } from "../../app/store/modalSlice";
-import LoginForm from "../users/LoginForm";
-import RegisterForm from "../users/RegisterForm";
+import { openModal } from "../../app/common/modals/modalSlice";
 
 const HomePage = () => {
   const dispatch = useAppDispatch();
-
   const { fbLoading, user } = useAppSelector((state) => state.user);
   const isLoggedIn = !!user;
 
@@ -40,14 +37,14 @@ const HomePage = () => {
         ) : (
           <>
             <Button
-              onClick={() => dispatch(openModal(<LoginForm />))}
+              onClick={() => dispatch(openModal("LoginForm"))}
               size="huge"
               inverted
             >
               Login!
             </Button>
             <Button
-              onClick={() => dispatch(openModal(<RegisterForm />))}
+              onClick={() => dispatch(openModal("RegisterForm"))}
               size="huge"
               inverted
             >

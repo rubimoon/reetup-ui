@@ -1,17 +1,18 @@
+import { FC } from "react";
 import { Modal } from "semantic-ui-react";
 import { useAppDispatch, useAppSelector } from "../../store/configureStore";
-import { closeModal } from "../../store/modalSlice";
+import { closeModal } from "./modalSlice";
 
-const ModalContainer = () => {
+const ModalWrapper: FC = ({ children }) => {
   const modal = useAppSelector((state) => state.modal.modal);
   const dispatch = useAppDispatch();
   const handleCloseModel = () => dispatch(closeModal());
 
   return (
     <Modal open={modal.open} onClose={handleCloseModel} size="mini">
-      <Modal.Content>{modal.body}</Modal.Content>
+      <Modal.Content>{children}</Modal.Content>
     </Modal>
   );
 };
 
-export default ModalContainer;
+export default ModalWrapper;

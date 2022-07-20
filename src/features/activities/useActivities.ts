@@ -1,83 +1,56 @@
-import { format } from "date-fns";
-import { useCallback, useEffect, useState } from "react";
-import { Activity } from "../../app/models/activity";
-import { PagingParams } from "../../app/models/pagination";
+import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { loadActivitiesAsync, setPagingParams } from "./activitySlice";
+import {
+  loadActivitiesAsync,
+  setPagingParams,
+  setRetainState,
+} from "./activitySlice";
 
 export default function useActivities() {
+  const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.user.user);
   const {
-    activityRegistry,
     loadingInitial,
-    pagingParams,
-    predicate,
     pagination,
+    pagingParams,
+    startDate,
+    filter,
+    groupedActivities,
+    retainState,
   } = useAppSelector((state) => state.activities);
 
   const [loadingNext, setLoadingNext] = useState(false);
 
-  const dispatch = useAppDispatch();
-
-  const generateAxiosParams = useCallback(() => {
-    const params = new URLSearchParams();
-    params.append("pageNumber", pagingParams.pageNumber.toString());
-    params.append("pageSize", pagingParams.pageSize.toString());
-    predicate.forEach((value, key) => {
-      if (key === "startDate") {
-        params.append(key, (value as Date).toISOString());
-      } else {
-        params.append(key, value);
-      }
-    });
-    return params;
-  }, [pagingParams.pageNumber, pagingParams.pageSize, predicate]);
-
-  useEffect(() => {
-    if (activityRegistry.size <= 1) {
-      const params = generateAxiosParams();
-      dispatch(loadActivitiesAsync({ params }));
-      setLoadingNext(false);
-    }
-  }, [
-    activityRegistry.size,
-    dispatch,
-    generateAxiosParams,
-    loadingInitial,
-    pagination,
-  ]);
-
   const handleGetNext = () => {
-    const params = generateAxiosParams();
+    if (!currentUser) return;
     setLoadingNext(true);
-    setPagingParams(new PagingParams(pagination!.currentPage + 1));
-    dispatch(loadActivitiesAsync({ params }));
+    dispatch(setPagingParams(pagination!.currentPage + 1));
+    dispatch(
+      loadActivitiesAsync({ currentUser, pagingParams, startDate, filter })
+    );
     setLoadingNext(false);
   };
 
-  const activitiesByDate = Array.from(activityRegistry.values()).sort(
-    (a, b) => a.date!.getTime() - b.date!.getTime()
-  );
-
-  const groupedActivities = Object.entries(
-    activitiesByDate.reduce((activities, activity) => {
-      const date = format(activity.date!, "dd MMM yyyy");
-      activities[date] = activities[date]
-        ? [...activities[date], activity]
-        : [activity];
-      return activities;
-    }, {} as { [key: string]: Activity[] })
-  );
-
-  const hasMore =
-    !loadingNext &&
-    !!pagination &&
-    pagination.currentPage < pagination.totalPages;
+  useEffect(() => {
+    if (retainState) return;
+    dispatch(
+      loadActivitiesAsync({
+        currentUser: currentUser!,
+        pagingParams,
+        startDate,
+        filter,
+      })
+    );
+    return () => {
+      dispatch(setRetainState());
+    };
+  }, [currentUser, dispatch, filter, pagingParams, retainState, startDate]);
 
   return {
     handleGetNext,
     loadingNext,
-    groupedActivities,
-    hasMore,
+    pagination,
     loadingInitial,
+    groupedActivities,
   };
 }
