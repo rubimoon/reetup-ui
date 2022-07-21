@@ -97,16 +97,9 @@ export const userSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(loginAsync.pending, (state, action) => {
-      console.log("loginAsync.pending");
-    });
     builder.addCase(loginAsync.fulfilled, (state, action) => {
       state.user = action.payload;
     });
-    builder.addCase(loginAsync.rejected, (state, action) => {
-      console.log("loginAsync.rejected");
-    });
-
     builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
       const user = action.payload;
       state.user = user;
