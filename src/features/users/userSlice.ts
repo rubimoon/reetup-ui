@@ -76,10 +76,10 @@ export const userSlice = createSlice({
     logout: (state) => {
       state.user = null;
     },
-    setImage: (state, action: { payload: string }) => {
-      if (state.user) state.user.displayName = action.payload;
+    setImage: (state, action) => {
+      if (state.user) state.user.image = action.payload;
     },
-    setDisplayName: (state, action: { payload: string }) => {
+    setDisplayName: (state, action) => {
       if (state.user) state.user.displayName = action.payload;
     },
 

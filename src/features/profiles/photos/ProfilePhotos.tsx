@@ -1,12 +1,16 @@
 import { SyntheticEvent, useState } from "react";
 import { Button, Card, Grid, Header, Image, Tab } from "semantic-ui-react";
-import { deletePhotoAsync, setMainPhotoAsync, uploadPhotoAsync } from ".";
 import PhotoUploadWidget from "../../../app/common/imageUpload/PhotoUploadWidget";
 import { Photo, Profile } from "../../../app/models/profile";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
+import {
+  deletePhotoAsync,
+  setMainPhotoAsync,
+  uploadPhotoAsync,
+} from "../profileSlice";
 
 interface Props {
   profile: Profile;
@@ -21,7 +25,8 @@ const ProfilePhotos = ({ profile }: Props) => {
   const [target, setTarget] = useState("");
 
   function handlePhotoUpload(file: Blob) {
-    dispatch(uploadPhotoAsync(file)).then(() => setAddPhotoMode(false));
+    dispatch(uploadPhotoAsync(file));
+    setAddPhotoMode(false);
   }
 
   function handleSetMainPhoto(

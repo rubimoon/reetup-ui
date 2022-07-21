@@ -6,8 +6,8 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
-import { loadUserActivitiesAsync } from ".";
 import { UserActivity } from "../../../app/models/profile";
+import { loadUserActivitiesAsync } from "../profileSlice";
 
 const panes = [
   { menuItem: "Future Events", pane: { key: "future" } },
