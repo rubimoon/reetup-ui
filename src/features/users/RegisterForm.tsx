@@ -2,7 +2,7 @@ import { ErrorMessage, Form, Formik } from "formik";
 import { Button, Header } from "semantic-ui-react";
 import MyTextInput from "../../app/common/form/MyTextInput";
 import * as Yup from "yup";
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { useAppDispatch } from "../../app/store/configureStore";
 import { registerAsync } from "./userSlice";
 import { history } from "../../";
 import ModalWrapper from "../../app/common/modals/ModalWrapper";
@@ -11,7 +11,6 @@ import { closeModal } from "../../app/common/modals/modalSlice";
 
 const RegisterForm = () => {
   const dispatch = useAppDispatch();
-  const registeredEmail = useAppSelector((state) => state.user.user?.email);
   return (
     <ModalWrapper>
       <Formik
@@ -27,7 +26,7 @@ const RegisterForm = () => {
             setErrors(error)
           );
           dispatch(closeModal());
-          history.push(`/account/registerSuccess?email=${registeredEmail}`);
+          history.push(`/account/registerSuccess?email=${values.email}`);
         }}
         validationSchema={Yup.object({
           displayName: Yup.string().required(),
