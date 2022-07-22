@@ -4,13 +4,13 @@ import MyTextInput from "../../app/common/form/MyTextInput";
 import * as Yup from "yup";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { registerAsync } from "./userSlice";
-import { history } from "../../";
+
 import ModalWrapper from "../../app/common/modals/ModalWrapper";
 import ValidationErrors from "../../app/errors/ui/ValidationErrors";
-import { closeModal } from "../../app/common/modals/modalSlice";
 
 const RegisterForm = () => {
   const dispatch = useAppDispatch();
+
   return (
     <ModalWrapper>
       <Formik
@@ -21,12 +21,12 @@ const RegisterForm = () => {
           password: "",
           error: null,
         }}
-        onSubmit={(values, { setErrors }) => {
-          dispatch(registerAsync(values)).catch((error) =>
-            setErrors({ error: error.message })
-          );
-          dispatch(closeModal());
-          history.push(`/account/registerSuccess?email=${values.email}`);
+        onSubmit={async (values, { setErrors }) => {
+          dispatch(registerAsync(values))
+            .unwrap()
+            .catch((error) => {
+              setErrors({ error: error.error });
+            });
         }}
         validationSchema={Yup.object({
           displayName: Yup.string().required(),

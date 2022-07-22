@@ -5,8 +5,6 @@ import { useAppDispatch } from "../../app/store/configureStore";
 import { loginAsync } from "./userSlice";
 import * as Yup from "yup";
 import ModalWrapper from "../../app/common/modals/ModalWrapper";
-import { closeModal } from "../../app/common/modals/modalSlice";
-import { history } from "../..";
 
 const LoginForm = () => {
   const dispatch = useAppDispatch();
@@ -14,17 +12,17 @@ const LoginForm = () => {
   return (
     <ModalWrapper>
       <Formik
-        initialValues={{ email: "", password: "" }}
+        initialValues={{ email: "", password: "", error: null }}
         validationSchema={Yup.object({
           email: Yup.string().required().email(),
           password: Yup.string().required(),
         })}
         onSubmit={async (values, { setErrors }) => {
-          dispatch(loginAsync(values)).catch((error) => {
-            setErrors(error);
-          });
-          dispatch(closeModal());
-          history.push("/activities");
+          dispatch(loginAsync(values))
+            .unwrap()
+            .catch((error) => {
+              setErrors({ error: error.error });
+            });
         }}
       >
         {({ handleSubmit, isSubmitting, errors }) => (
@@ -48,10 +46,11 @@ const LoginForm = () => {
                   style={{ marginBottom: 10 }}
                   basic
                   color="red"
-                  content={errors}
+                  content={errors.error}
                 />
               )}
             />
+
             <Button
               loading={isSubmitting}
               positive
