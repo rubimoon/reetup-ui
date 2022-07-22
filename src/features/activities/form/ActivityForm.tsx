@@ -15,7 +15,6 @@ import {
   clearSelectedActivity,
   createActivityAsync,
   loadActivityAsync,
-  resetActivityRegistry,
   updateActivityAsync,
 } from "../activitySlice";
 import {
@@ -24,6 +23,10 @@ import {
 } from "../../../app/store/configureStore";
 import { history } from "../../..";
 import { mapActivityToActivityFormValues } from "../../../app/common/utils/mapper";
+import {
+  convertDateISOString,
+  formatDateTime,
+} from "../../../app/common/utils/date";
 
 const ActivityForm = () => {
   const dispatch = useAppDispatch();
@@ -49,26 +52,30 @@ const ActivityForm = () => {
     title: Yup.string().required("The activity title is required"),
     description: Yup.string().required("The activity description is required"),
     category: Yup.string().required(),
-    date: Yup.string().required("Date is required").nullable(),
+    date: Yup.date().min(
+      new Date(),
+      `Date must be later than ${formatDateTime(new Date())}`
+    ),
     venue: Yup.string().required(),
     city: Yup.string().required(),
   });
 
   useEffect(() => {
-    dispatch(clearSelectedActivity());
     if (!id) return;
     dispatch(loadActivityAsync({ currentUser: user!, id }));
+    return () => {
+      dispatch(clearSelectedActivity());
+    };
   }, [dispatch, id, user]);
 
   function handleFormSubmit(formValues: ActivityFormValues) {
     if (!user) return;
-    dispatch(resetActivityRegistry());
     if (!formValues.id) {
       let newActivity = {
         ...formValues,
         id: uuid(),
       };
-      newActivity.date = new Date(newActivity.date!).toISOString();
+      newActivity.date = convertDateISOString(newActivity.date!);
       dispatch(
         createActivityAsync({ currentUser: user, activity: newActivity })
       ).then(() => {
