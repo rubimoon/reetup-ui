@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import {
+  getCurrentUserAysnc,
+  getFacebookLoginStatusAsync,
+} from "../../features/users/userSlice";
 import ModalManager from "../common/modals/ModalManager";
 import { setAppLoaded } from "../store/commonSlice";
 import { useAppDispatch, useAppSelector } from "../store/configureStore";
@@ -14,8 +18,10 @@ const App = () => {
 
   useEffect(() => {
     if (token) {
+      dispatch(getCurrentUserAysnc());
       window.localStorage.setItem("jwt", token);
     } else {
+      dispatch(getFacebookLoginStatusAsync());
       window.localStorage.removeItem("jwt");
     }
     dispatch(setAppLoaded());

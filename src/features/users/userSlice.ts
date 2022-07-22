@@ -19,11 +19,14 @@ export const loginAsync = createAsyncThunk<User, UserFormValues>(
   }
 );
 
-export const refreshTokenAsync = createAsyncThunk<User>(
+export const refreshTokenAsync = createAsyncThunk<void>(
   "user/refreshTokenAsync",
   async (_, thunkAPI) => {
     try {
-      return await agent.Account.refreshToken();
+      const user = await agent.Account.refreshToken();
+      thunkAPI.dispatch(setCurrentUser(user));
+      thunkAPI.dispatch(setToken(user.token));
+      thunkAPI.dispatch(startRefreshTokenTimer(user));
     } catch (error: any) {
       return thunkAPI.rejectWithValue({ error: error.data });
     }
@@ -69,10 +72,37 @@ export const getFacebookLoginStatusAsync = createAsyncThunk<
   });
 });
 
+export const facebookLoginAsync = createAsyncThunk<void, string | null>(
+  "user/facebookLoginAsync",
+  (fbAccessToken, thunkAPI) => {
+    const apiLogin = (accessToken: string) => {
+      agent.Account.fbLogin(accessToken).then((user) => {
+        thunkAPI.dispatch(setToken(user.token));
+        thunkAPI.dispatch(startRefreshTokenTimer(user));
+        thunkAPI.dispatch(setCurrentUser(user));
+      });
+    };
+
+    if (fbAccessToken) {
+      apiLogin(fbAccessToken);
+    } else {
+      window.FB.login(
+        (response) => {
+          apiLogin(response.authResponse.accessToken);
+        },
+        { scope: "public_profile,email" }
+      );
+    }
+  }
+);
+
 export const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
+    setCurrentUser: (state, action) => {
+      state.user = action.payload;
+    },
     logout: (state) => {
       state.user = null;
     },
@@ -100,10 +130,6 @@ export const userSlice = createSlice({
     builder.addCase(loginAsync.fulfilled, (state, action) => {
       state.user = action.payload;
     });
-    builder.addCase(refreshTokenAsync.fulfilled, (state, action) => {
-      const user = action.payload;
-      state.user = user;
-    });
     builder.addCase(getCurrentUserAysnc.fulfilled, (state, action) => {
       state.user = action.payload;
     });
@@ -113,10 +139,20 @@ export const userSlice = createSlice({
     builder.addCase(registerAsync.fulfilled, (state, action) => {
       state.email = action.payload.email;
     });
+    builder.addCase(facebookLoginAsync.pending, (state, action) => {
+      state.fbLoading = true;
+    });
+    builder.addCase(facebookLoginAsync.fulfilled, (state, action) => {
+      state.fbLoading = false;
+    });
+    builder.addCase(facebookLoginAsync.rejected, (state, action) => {
+      state.fbLoading = false;
+    });
   },
 });
 
 export const {
+  setCurrentUser,
   startRefreshTokenTimer,
   stopRefreshTokenTimer,
   logout,

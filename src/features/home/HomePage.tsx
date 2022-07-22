@@ -9,11 +9,20 @@ import {
 } from "semantic-ui-react";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { openModal } from "../../app/common/modals/modalSlice";
+import { facebookLoginAsync } from "../users/userSlice";
+import { history } from "../../";
 
 const HomePage = () => {
   const dispatch = useAppDispatch();
-  const { fbLoading, user } = useAppSelector((state) => state.user);
+  const { fbLoading, user, fbAccessToken } = useAppSelector(
+    (state) => state.user
+  );
   const isLoggedIn = !!user;
+
+  const handleFacebookLogin = () => {
+    dispatch(facebookLoginAsync(fbAccessToken));
+    history.push("/activities");
+  };
 
   return (
     <Segment inverted textAlign="center" vertical className="masthead">
@@ -59,7 +68,7 @@ const HomePage = () => {
               inverted
               color="facebook"
               content="Login with Facebook"
-              //   onClick={facebookLogin()}
+              onClick={handleFacebookLogin}
             />
           </>
         )}
