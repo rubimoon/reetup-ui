@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Segment, Header, Comment, Loader } from "semantic-ui-react";
 
 import * as Yup from "yup";
-
 import {
   addCommentAsync,
   appendComment,

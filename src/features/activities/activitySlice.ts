@@ -129,9 +129,6 @@ export const activitiesSlice = createSlice({
       state.filter = action.payload;
       state.retainState = false;
     },
-    setRetainState: (state) => {
-      state.retainState = true;
-    },
 
     setPagingParams: (state, action) => {
       state.pagingParams.pageNumber = action.payload;
@@ -174,6 +171,7 @@ export const activitiesSlice = createSlice({
       state.activityRegistry = { ...state.activityRegistry, ...ob };
       state.pagination = action.payload.pagination;
       state.loadingInitial = false;
+      state.retainState = true;
     });
     builder.addCase(loadActivitiesAsync.rejected, (state, action) => {
       state.loadingInitial = false;
@@ -201,7 +199,11 @@ export const activitiesSlice = createSlice({
       newActivity.hostUsername = currentUser.username;
       newActivity.attendees = [attendee];
       setActivityUser(currentUser, newActivity);
-      state.activityRegistry[newActivity.id] = newActivity;
+
+      state.activityRegistry = {
+        ...state.activityRegistry,
+        [newActivity.id]: newActivity,
+      };
       state.selectedActivity = newActivity;
       state.loadingInitial = false;
       state.retainState = false;
@@ -217,7 +219,10 @@ export const activitiesSlice = createSlice({
       updatedActivity.hostUsername = currentUser.username;
       updatedActivity.attendees = [attendee];
       setActivityUser(currentUser, updatedActivity);
-      state.activityRegistry[updatedActivity.id] = updatedActivity;
+      state.activityRegistry = {
+        ...state.activityRegistry,
+        [updatedActivity.id]: updatedActivity,
+      };
       state.selectedActivity = updatedActivity;
       state.retainState = false;
     });
@@ -299,7 +304,6 @@ function generateAxiosParams(
 }
 
 export const {
-  setRetainState,
   setPagingParams,
   updateAttendeeFollowing,
   clearSelectedActivity,
