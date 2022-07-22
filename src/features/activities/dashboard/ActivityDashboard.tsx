@@ -33,7 +33,7 @@ const ActivityDashboard = () => {
             }
             initialLoad={false}
           >
-            <ActivityList activities={activityRegistry} />
+            <ActivityList activityRegistry={activityRegistry} />
           </InfiniteScroll>
         )}
       </Grid.Column>
