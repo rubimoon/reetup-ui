@@ -15,7 +15,7 @@ export default function useActivities() {
     pagingParams,
     startDate,
     filter,
-    groupedActivities,
+    activityRegistry,
     retainState,
   } = useAppSelector((state) => state.activities);
 
@@ -51,6 +51,6 @@ export default function useActivities() {
     loadingNext,
     pagination,
     loadingInitial,
-    groupedActivities,
+    activityRegistry,
   };
 }

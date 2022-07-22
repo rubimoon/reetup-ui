@@ -11,7 +11,7 @@ const ActivityDashboard = () => {
     loadingNext,
     pagination,
     loadingInitial,
-    groupedActivities,
+    activityRegistry,
   } = useActivities();
 
   return (
@@ -33,7 +33,7 @@ const ActivityDashboard = () => {
             }
             initialLoad={false}
           >
-            <ActivityList groupedActivities={groupedActivities} />
+            <ActivityList activities={activityRegistry} />
           </InfiniteScroll>
         )}
       </Grid.Column>

@@ -1,13 +1,46 @@
-import { Fragment } from "react";
+import { format } from "date-fns";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { Header } from "semantic-ui-react";
 import { Activity } from "../../../app/models/activity";
 import ActivityListItem from "./ActivityListItem";
 
 interface Props {
-  groupedActivities: [string, Activity[]][];
+  activities: { [key: string]: Activity };
 }
 
-const ActivityList = ({ groupedActivities }: Props) => {
+const ActivityList = ({ activities }: Props) => {
+  const [activitiesByDate, setActivitiesByDate] = useState<Activity[]>([]);
+  const [groupedActivities, setGroupedActivities] = useState<
+    [string, Activity[]][]
+  >([]);
+
+  const handleActivitiesByDate = useCallback(() => {
+    const arr = Object.values(activities).sort(
+      (a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime()
+    );
+    setActivitiesByDate(arr);
+  }, [activities]);
+
+  const handleGroupedActivities = useCallback(() => {
+    const arr = Object.entries(
+      activitiesByDate.reduce((activities, activity) => {
+        const date = format(new Date(activity.date!), "dd MMM yyyy");
+        activities[date] = activities[date]
+          ? [...activities[date], activity]
+          : [activity];
+        return activities;
+      }, {} as { [key: string]: Activity[] })
+    );
+    setGroupedActivities(arr);
+  }, [activitiesByDate]);
+
+  useEffect(() => {
+    handleActivitiesByDate();
+    handleGroupedActivities();
+  }, [handleActivitiesByDate, handleGroupedActivities]);
+
+  if (!activities) return <h1>There is no Activity. Please create one.</h1>;
+
   return (
     <>
       {groupedActivities.map(([group, activities]) => (

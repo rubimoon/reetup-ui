@@ -5,7 +5,6 @@ export type ActivityFilter = "all" | "isHost" | "isGoing";
 
 export interface ActivityState {
   activityRegistry: { [key: string]: Activity };
-  groupedActivities: [string, Activity[]][];
   selectedActivity: Activity | undefined;
   editMode: boolean;
   loading: boolean;
@@ -32,6 +31,5 @@ export const initialState: ActivityState = {
   pagingParams: initialPagingParams,
   startDate: "",
   filter: "all",
-  groupedActivities: [],
   retainState: false,
 };

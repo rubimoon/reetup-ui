@@ -1,5 +1,4 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { format } from "date-fns";
 import agent from "../../app/api/agent";
 import {
   mapActivityFormValueToActivity,
@@ -174,20 +173,6 @@ export const activitiesSlice = createSlice({
 
       state.activityRegistry = { ...state.activityRegistry, ...ob };
       state.pagination = action.payload.pagination;
-      const activitiesByDate = Object.values(state.activityRegistry).sort(
-        (a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime()
-      );
-
-      const arr = Object.entries(
-        activitiesByDate.reduce((activities, activity) => {
-          const date = format(new Date(activity.date!), "dd MMM yyyy");
-          activities[date] = activities[date]
-            ? [...activities[date], activity]
-            : [activity];
-          return activities;
-        }, {} as { [key: string]: Activity[] })
-      );
-      state.groupedActivities = arr;
       state.loadingInitial = false;
     });
     builder.addCase(loadActivitiesAsync.rejected, (state, action) => {
