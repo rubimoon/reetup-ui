@@ -22,8 +22,8 @@ const RegisterForm = () => {
           error: null,
         }}
         onSubmit={(values, { setErrors }) => {
-          dispatch(registerAsync({ creds: values })).catch((error) =>
-            setErrors(error)
+          dispatch(registerAsync(values)).catch((error) =>
+            setErrors({ error: error.message })
           );
           dispatch(closeModal());
           history.push(`/account/registerSuccess?email=${values.email}`);

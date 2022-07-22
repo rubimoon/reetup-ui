@@ -24,7 +24,7 @@ const NavBar = () => {
             alt="logo"
             style={{ marginRight: "10px" }}
           />
-          Reactivities
+          Reetup
         </Menu.Item>
         {isLoggedIn && (
           <>

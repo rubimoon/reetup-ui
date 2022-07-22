@@ -9,20 +9,11 @@ import {
 } from "semantic-ui-react";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
 import { openModal } from "../../app/common/modals/modalSlice";
-import { facebookLoginAsync } from "../users/userSlice";
-import { history } from "../../";
 
 const HomePage = () => {
   const dispatch = useAppDispatch();
-  const { fbLoading, user, fbAccessToken } = useAppSelector(
-    (state) => state.user
-  );
+  const { user } = useAppSelector((state) => state.user);
   const isLoggedIn = !!user;
-
-  const handleFacebookLogin = () => {
-    dispatch(facebookLoginAsync(fbAccessToken));
-    history.push("/activities");
-  };
 
   return (
     <Segment inverted textAlign="center" vertical className="masthead">
@@ -34,13 +25,13 @@ const HomePage = () => {
             alt="logo"
             style={{ marginBottom: 12 }}
           />
-          Reactivities
+          Reetup
         </Header>
         {isLoggedIn ? (
           <>
-            <Header as="h2" inverted content="Welcome to Reactivities" />
+            <Header as="h2" inverted content="Welcome to Reetup" />
             <Button as={Link} to="/activities" size="huge" inverted>
-              Go to Activities!
+              See what’s happening!
             </Button>
           </>
         ) : (
@@ -63,12 +54,10 @@ const HomePage = () => {
               Or
             </Divider>
             <Button
-              loading={fbLoading}
               size="huge"
               inverted
               color="facebook"
               content="Login with Facebook"
-              onClick={handleFacebookLogin}
             />
           </>
         )}

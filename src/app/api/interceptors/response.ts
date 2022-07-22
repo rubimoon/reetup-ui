@@ -2,7 +2,7 @@ import { AxiosError, AxiosResponse } from "axios";
 import { store } from "../../store/configureStore";
 import { toast } from "react-toastify";
 import { history } from "../../..";
-import { setServerError } from "../../store/commonSlice";
+import { setServerError, setToken } from "../../store/commonSlice";
 import { logout } from "../../../features/users/userSlice";
 import { delay } from "../../common/utils";
 
@@ -44,6 +44,7 @@ const responseError = (error: AxiosError) => {
         headers["www-authenticate"]?.startsWith('Bearer error="invalid_token"')
       ) {
         store.dispatch(logout());
+        store.dispatch(setToken(null));
         toast.error("Session expired - please login again");
       }
       break;

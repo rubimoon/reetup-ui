@@ -31,7 +31,7 @@ const LoginForm = () => {
           <Form className="ui form" onSubmit={handleSubmit} autoComplete="off">
             <Header
               as="h2"
-              content="Login to Reactivites"
+              content="Login to Reetup"
               color="teal"
               textAlign="center"
             />
