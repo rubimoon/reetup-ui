@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Segment, Header, Comment, Loader } from "semantic-ui-react";
 
 import * as Yup from "yup";
-import { formatDistanceToNow } from "date-fns";
+
 import {
   addCommentAsync,
   appendComment,
@@ -22,6 +22,10 @@ import {
   LogLevel,
 } from "@microsoft/signalr";
 import { ChatComment } from "../../../../app/models/comment";
+import {
+  convertDateISOString,
+  getDistanceToNow,
+} from "../../../../app/common/utils/date";
 
 interface Props {
   activity: Activity;
@@ -64,13 +68,13 @@ const ActivityDetailedChat = ({ activity }: Props) => {
 
     hubConnection.on("LoadComments", (chatComments: ChatComment[]) => {
       chatComments.forEach((chatComment) => {
-        chatComment.createdAt = new Date(chatComment.createdAt).toISOString();
+        chatComment.createdAt = convertDateISOString(chatComment.createdAt);
       });
       dispatch(setComments(chatComments));
     });
 
     hubConnection.on("ReceiveComment", (chatComment: ChatComment) => {
-      chatComment.createdAt = new Date(chatComment.createdAt).toISOString();
+      chatComment.createdAt = convertDateISOString(chatComment.createdAt);
       dispatch(appendComment(chatComment));
     });
 
@@ -143,9 +147,7 @@ const ActivityDetailedChat = ({ activity }: Props) => {
                   {comment.displayName}
                 </Comment.Author>
                 <Comment.Metadata>
-                  <div>
-                    {formatDistanceToNow(new Date(comment.createdAt))} ago
-                  </div>
+                  <div>{getDistanceToNow(comment.createdAt)} ago</div>
                 </Comment.Metadata>
                 <Comment.Text style={{ whiteSpace: "pre-wrap" }}>
                   {comment.body}

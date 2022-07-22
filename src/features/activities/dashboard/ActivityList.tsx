@@ -1,6 +1,6 @@
-import { format } from "date-fns";
 import { Fragment, useEffect, useState } from "react";
 import { Header } from "semantic-ui-react";
+import { formatDate } from "../../../app/common/utils/date";
 import { Activity } from "../../../app/models/activity";
 import ActivityListItem from "./ActivityListItem";
 
@@ -19,7 +19,7 @@ const ActivityList = ({ activityRegistry }: Props) => {
     );
     const arr = Object.entries(
       activitiesByDate.reduce((activities, activity) => {
-        const date = format(new Date(activity.date!), "dd MMM yyyy");
+        const date = formatDate(activity.date!);
         activities[date] = activities[date]
           ? [...activities[date], activity]
           : [activity];

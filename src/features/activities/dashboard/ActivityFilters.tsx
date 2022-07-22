@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Calendar from "react-calendar";
 import { Header, Menu } from "semantic-ui-react";
+import { convertDateISOString } from "../../../app/common/utils/date";
 import {
   useAppDispatch,
   useAppSelector,
@@ -19,9 +20,8 @@ const ActivityFilters = () => {
 
   const handleStartDate = (date: any) => {
     setDateValue(new Date(date));
-    const plainDate = dateValue.toISOString();
     dispatch(resetActivityRegistry());
-    dispatch(setStartDate(plainDate));
+    dispatch(setStartDate(convertDateISOString(dateValue)));
   };
 
   const handleFilter = (filter: ActivityFilter) => {

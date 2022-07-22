@@ -1,13 +1,14 @@
 import { SyntheticEvent, useEffect } from "react";
 import { Tab, Grid, Header, Card, Image, TabProps } from "semantic-ui-react";
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
+
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { UserActivity } from "../../../app/models/profile";
 import { loadUserActivitiesAsync } from "../profileSlice";
+import { formatDoLLL, formatTime } from "../../../app/common/utils/date";
 
 const panes = [
   { menuItem: "Future Events", pane: { key: "future" } },
@@ -61,8 +62,8 @@ const ProfileActivities = () => {
                 <Card.Content>
                   <Card.Header textAlign="center">{activity.title}</Card.Header>
                   <Card.Meta textAlign="center">
-                    <div>{format(new Date(activity.date), "do LLL")}</div>
-                    <div>{format(new Date(activity.date), "h:mm a")}</div>
+                    <div>{formatDoLLL(activity.date!)}</div>
+                    <div>{formatTime(activity.date!)}</div>
                   </Card.Meta>
                 </Card.Content>
               </Card>

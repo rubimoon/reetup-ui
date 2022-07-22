@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button, Header, Item, Segment, Image, Label } from "semantic-ui-react";
 import { Activity } from "../../../app/models/activity";
-import { format } from "date-fns";
+
 import {
   useAppDispatch,
   useAppSelector,
@@ -10,6 +10,7 @@ import {
   cancelActivityToggleAsync,
   updateAttendanceAsync,
 } from "../activitySlice";
+import { formatDate } from "../../../app/common/utils/date";
 
 const activityImageStyle = {
   filter: "brightness(30%)",
@@ -70,7 +71,7 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
                   content={activity.title}
                   style={{ color: "white" }}
                 />
-                <p>{format(new Date(activity.date!), "dd MMM yyyy")}</p>
+                <p>{formatDate(activity.date!)}</p>
                 <p>
                   Hosted by{activity.hostUsername}
                   <strong>
