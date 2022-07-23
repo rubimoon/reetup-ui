@@ -6,14 +6,13 @@ export type ActivityFilter = "all" | "isHost" | "isGoing";
 export interface ActivityState {
   activityRegistry: { [key: string]: Activity };
   selectedActivity: Activity | undefined;
-  editMode: boolean;
-  loading: boolean;
-  loadingInitial: boolean;
+  isEditMode: boolean;
+  isLoading: boolean;
+  isLoadingInitial: boolean;
   pagination: Pagination | null;
   pagingParams: PagingParams;
   startDate: string;
   filter: ActivityFilter;
-  retainState: boolean;
 }
 
 export const initialPagingParams = {
@@ -24,12 +23,11 @@ export const initialPagingParams = {
 export const initialState: ActivityState = {
   activityRegistry: {},
   selectedActivity: undefined,
-  editMode: false,
-  loading: false,
-  loadingInitial: false,
+  isEditMode: false,
+  isLoading: false,
+  isLoadingInitial: false,
   pagination: null,
   pagingParams: initialPagingParams,
   startDate: "",
   filter: "all",
-  retainState: false,
 };

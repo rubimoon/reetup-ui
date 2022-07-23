@@ -14,19 +14,21 @@ import {
 import { ActivityFilter } from "../activityState";
 
 const ActivityFilters = () => {
-  const { filter } = useAppSelector((state) => state.activities);
+  const { filter, startDate } = useAppSelector((state) => state.activities);
   const [dateValue, setDateValue] = useState<Date>(new Date());
   const dispatch = useAppDispatch();
 
   const handleStartDate = (date: any) => {
+    if (convertDateISOString(date) === startDate) return;
     setDateValue(new Date(date));
     dispatch(resetActivityRegistry());
     dispatch(setStartDate(convertDateISOString(dateValue)));
   };
 
-  const handleFilter = (filter: ActivityFilter) => {
+  const handleFilter = (opt: ActivityFilter) => {
+    if (opt === filter) return;
     dispatch(resetActivityRegistry());
-    dispatch(setFilter(filter));
+    dispatch(setFilter(opt));
   };
 
   return (

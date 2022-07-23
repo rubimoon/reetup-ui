@@ -11,23 +11,24 @@ import ActivityDetailedChat from "./comments/ActivityDetailedChat";
 import ActivityDetailedInfo from "./ActivityDetailedInfo";
 import ActivityDetailedSidebar from "./ActivityDetailedSidebar";
 import ActivityDetailedHeader from "./ActivityDetaledHeader";
+import { useLoggedInUser } from "../../users/userSlice";
 
 const ActivityDetails = () => {
   const dispatch = useAppDispatch();
-  const { selectedActivity, loadingInitial } = useAppSelector(
+  const { selectedActivity, isLoadingInitial } = useAppSelector(
     (state) => state.activities
   );
-  const user = useAppSelector((state) => state.user.user);
+  const currentUser = useLoggedInUser();
   const { id } = useParams<{ id: string }>();
 
   useEffect(() => {
-    if (id) dispatch(loadActivityAsync({ currentUser: user!, id }));
+    if (id) dispatch(loadActivityAsync({ currentUser, id }));
     return () => {
       dispatch(clearSelectedActivity());
     };
-  }, [dispatch, id, user]);
+  }, [dispatch, id, currentUser]);
 
-  if (loadingInitial || !selectedActivity) return <LoadingComponent />;
+  if (isLoadingInitial || !selectedActivity) return <LoadingComponent />;
 
   return (
     <Grid>

@@ -1,16 +1,15 @@
 import { useEffect } from "react";
 import { Tab, Grid, Header, Card } from "semantic-ui-react";
-import { loadFollowingsAsync } from ".";
 import {
   useAppSelector,
   useAppDispatch,
 } from "../../../app/store/configureStore";
 import ProfileCard from "../layout/ProfileCard";
+import { loadFollowingsAsync } from "../profileSlice";
 
 const ProfileFollowings = () => {
-  const { profile, followings, loadingFollowings, activeTab } = useAppSelector(
-    (state) => state.profile
-  );
+  const { profile, followings, isLoadingFollowings, activeTab } =
+    useAppSelector((state) => state.profile);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -25,7 +24,7 @@ const ProfileFollowings = () => {
   }, [activeTab, dispatch]);
 
   return (
-    <Tab.Pane loading={loadingFollowings}>
+    <Tab.Pane loading={isLoadingFollowings}>
       <Grid>
         <Grid.Column width="16">
           <Header
@@ -34,7 +33,7 @@ const ProfileFollowings = () => {
             content={
               activeTab === 3
                 ? `People following ${profile!.displayName}`
-                : `People ${profile?.displayName} is following`
+                : `People ${profile!.displayName} is following`
             }
           />
         </Grid.Column>

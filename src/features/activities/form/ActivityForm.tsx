@@ -27,15 +27,17 @@ import {
   convertDateISOString,
   formatDateTime,
 } from "../../../app/common/utils/date";
+import { useLoggedInUser } from "../../users/userSlice";
 
 const ActivityForm = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams<{ id: string }>();
 
-  const { loadingInitial, selectedActivity } = useAppSelector(
+  const { isLoadingInitial, selectedActivity } = useAppSelector(
     (state) => state.activities
   );
-  const { user } = useAppSelector((state) => state.user);
+  // const { currentUser } = useAppSelector((state) => state.user);
+  const currentUser = useLoggedInUser();
   const initialFormValues = selectedActivity
     ? mapActivityToActivityFormValues(selectedActivity)
     : {
@@ -62,14 +64,13 @@ const ActivityForm = () => {
 
   useEffect(() => {
     if (!id) return;
-    dispatch(loadActivityAsync({ currentUser: user!, id }));
+    dispatch(loadActivityAsync({ currentUser, id }));
     return () => {
       dispatch(clearSelectedActivity());
     };
-  }, [dispatch, id, user]);
+  }, [dispatch, id, currentUser]);
 
   function handleFormSubmit(formValues: ActivityFormValues) {
-    if (!user) return;
     if (!formValues.id) {
       let newActivity = {
         ...formValues,
@@ -77,20 +78,24 @@ const ActivityForm = () => {
       };
       newActivity.date = convertDateISOString(newActivity.date!);
       dispatch(
-        createActivityAsync({ currentUser: user, activity: newActivity })
+        createActivityAsync({
+          currentUser,
+          activity: newActivity,
+        })
       ).then(() => {
         history.push(`/activities/${newActivity.id}`);
       });
     } else {
-      dispatch(
-        updateActivityAsync({ currentUser: user, activity: formValues })
-      ).then(() => {
-        history.push(`/activities/${formValues.id}`);
-      });
+      dispatch(updateActivityAsync({ currentUser, activity: formValues })).then(
+        () => {
+          history.push(`/activities/${formValues.id}`);
+        }
+      );
     }
   }
 
-  if (loadingInitial) return <LoadingComponent content="Loading activity..." />;
+  if (isLoadingInitial)
+    return <LoadingComponent content="Loading activity..." />;
 
   return (
     <Segment clearing>

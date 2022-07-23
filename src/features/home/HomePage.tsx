@@ -7,13 +7,13 @@ import {
   Button,
   Divider,
 } from "semantic-ui-react";
-import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
+import { useAppDispatch } from "../../app/store/configureStore";
 import { openModal } from "../../app/common/modals/modalSlice";
+import { useUserAuth } from "../users/userSlice";
 
 const HomePage = () => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.user);
-  const isLoggedIn = !!user;
+  const isLoggedIn = useUserAuth();
 
   return (
     <Segment inverted textAlign="center" vertical className="masthead">

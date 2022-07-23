@@ -1,49 +1,45 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/store/configureStore";
-import { loadActivitiesAsync, setPagingParams } from "./activitySlice";
+import { useLoggedInUser } from "../users/userSlice";
+import { loadActivitiesAsync, setPagingNumber } from "./activitySlice";
 
 export default function useActivities() {
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector((state) => state.user.user);
-  const {
-    loadingInitial,
-    pagination,
-    pagingParams,
-    startDate,
-    filter,
-    activityRegistry,
-    retainState,
-  } = useAppSelector((state) => state.activities);
+  const currentUser = useLoggedInUser();
+  const { isLoadingInitial, pagination, pagingParams, startDate, filter } =
+    useAppSelector((state) => state.activities);
 
-  const [loadingNext, setLoadingNext] = useState(false);
+  const [isLoadingNext, setIsLoadingNext] = useState(false);
 
   const handleGetNext = () => {
-    if (!currentUser) return;
-    setLoadingNext(true);
-    dispatch(setPagingParams(pagination!.currentPage + 1));
-    dispatch(
-      loadActivitiesAsync({ currentUser, pagingParams, startDate, filter })
-    );
-    setLoadingNext(false);
-  };
-
-  useEffect(() => {
-    if (retainState) return;
+    setIsLoadingNext(true);
+    dispatch(setPagingNumber(pagination!.currentPage + 1));
     dispatch(
       loadActivitiesAsync({
-        currentUser: currentUser!,
+        currentUser,
         pagingParams,
         startDate,
         filter,
       })
     );
-  }, [currentUser, dispatch, filter, pagingParams, retainState, startDate]);
+    setIsLoadingNext(false);
+  };
+
+  useEffect(() => {
+    dispatch(
+      loadActivitiesAsync({
+        currentUser,
+        pagingParams,
+        startDate,
+        filter,
+      })
+    );
+  }, [currentUser, dispatch, filter, pagingParams, startDate]);
 
   return {
     handleGetNext,
-    loadingNext,
+    isLoadingNext,
     pagination,
-    loadingInitial,
-    activityRegistry,
+    isLoadingInitial,
   };
 }

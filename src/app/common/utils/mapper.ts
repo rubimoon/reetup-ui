@@ -11,7 +11,7 @@ export const mapUserToProfile = (user: User): Profile => ({
   displayName: user.displayName,
   followersCount: 0,
   followingCount: 0,
-  following: false,
+  isFollowing: false,
   image: user!.image,
 });
 

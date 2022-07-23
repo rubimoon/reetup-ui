@@ -8,6 +8,7 @@ import {
   useAppSelector,
 } from "../../../app/store/configureStore";
 import { updateProfileAsync } from "../profileSlice";
+import { useLoggedInUser } from "../../users/userSlice";
 
 interface Props {
   setEditMode: (editMode: boolean) => void;
@@ -15,14 +16,15 @@ interface Props {
 
 const ProfileEditForm = ({ setEditMode }: Props) => {
   const profile = useAppSelector((state) => state.profile.profile);
+  const currentUser = useLoggedInUser();
   const dispatch = useAppDispatch();
   return (
     <Formik
       initialValues={{ displayName: profile?.displayName, bio: profile?.bio }}
       onSubmit={(values) => {
-        dispatch(updateProfileAsync(values)).then(() => {
-          setEditMode(false);
-        });
+        dispatch(updateProfileAsync({ currentUser, profile: values })).then(
+          () => setEditMode(false)
+        );
       }}
       validationSchema={Yup.object({
         displayName: Yup.string().required(),

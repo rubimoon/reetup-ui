@@ -6,6 +6,7 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
+import { useLoggedInUser } from "../../users/userSlice";
 import {
   deletePhotoAsync,
   setMainPhotoAsync,
@@ -18,14 +19,15 @@ interface Props {
 
 const ProfilePhotos = ({ profile }: Props) => {
   const dispatch = useAppDispatch();
-  const { uploading, loading, isCurrentUser } = useAppSelector(
+  const currentUser = useLoggedInUser();
+  const { isUploading, isLoading, isCurrentUser } = useAppSelector(
     (state) => state.profile
   );
   const [addPhotoMode, setAddPhotoMode] = useState(false);
   const [target, setTarget] = useState("");
 
   function handlePhotoUpload(file: Blob) {
-    dispatch(uploadPhotoAsync(file));
+    dispatch(uploadPhotoAsync({ currentUser, file }));
     setAddPhotoMode(false);
   }
 
@@ -63,7 +65,7 @@ const ProfilePhotos = ({ profile }: Props) => {
           {addPhotoMode ? (
             <PhotoUploadWidget
               uploadPhoto={handlePhotoUpload}
-              loading={uploading}
+              loading={isUploading}
             />
           ) : (
             <Card.Group itemsPerRow={5}>
@@ -78,14 +80,14 @@ const ProfilePhotos = ({ profile }: Props) => {
                         content="Main"
                         name={"main" + photo.id}
                         disabled={photo.isMain}
-                        loading={target === "main" + photo.id && loading}
+                        loading={target === "main" + photo.id && isLoading}
                         onClick={(e) => handleSetMainPhoto(photo, e)}
                       />
                       <Button
                         basic
                         color="red"
                         icon="trash"
-                        loading={target === photo.id && loading}
+                        loading={target === photo.id && isLoading}
                         onClick={(e) => handleDeletePhoto(photo, e)}
                         disabled={photo.isMain}
                         name={photo.id}

@@ -4,7 +4,7 @@ export interface Profile {
   image?: string;
   followersCount: number;
   followingCount: number;
-  following: boolean;
+  isFollowing: boolean;
   bio?: string;
   photos?: Photo[];
 }

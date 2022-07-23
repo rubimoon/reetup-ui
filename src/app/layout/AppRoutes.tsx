@@ -10,18 +10,16 @@ import ConfirmEmail from "../../features/users/ConfirmEmail";
 import ServerError from "../errors/ui/ServerError";
 import TestErrors from "../errors/ui/TestError";
 import ProfilePage from "../../features/profiles/layout/ProfilePage";
-import { useAppSelector } from "../store/configureStore";
 import NavBar from "./NavBar";
 import { Container } from "semantic-ui-react";
+import { useUserAuth } from "../../features/users/userSlice";
 
 interface Props {
   location: any;
 }
 
 const AppRoutes = ({ location }: Props) => {
-  const { user } = useAppSelector((state) => state.user);
-  const isLoggedIn = !!user;
-
+  const isLoggedIn = useUserAuth();
   const wrapper = (Children: () => JSX.Element) => (
     <>
       <NavBar />

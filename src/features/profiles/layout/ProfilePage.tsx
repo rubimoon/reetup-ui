@@ -14,7 +14,9 @@ import ProfileHeader from "./ProfileHeader";
 
 const ProfilePage = () => {
   const { username } = useParams<{ username: string }>();
-  const { loadingProfile, profile } = useAppSelector((state) => state.profile);
+  const { isLoadingProfile, profile } = useAppSelector(
+    (state) => state.profile
+  );
 
   const dispatch = useAppDispatch();
   useEffect(() => {
@@ -26,7 +28,8 @@ const ProfilePage = () => {
     };
   }, [dispatch, username]);
 
-  if (loadingProfile) return <LoadingComponent content="Loading profile..." />;
+  if (isLoadingProfile)
+    return <LoadingComponent content="Loading profile..." />;
 
   return (
     <Grid>

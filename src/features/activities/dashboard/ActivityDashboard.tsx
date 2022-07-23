@@ -6,18 +6,13 @@ import ActivityList from "./ActivityList";
 import ActivityListItemPlaceholder from "./ActivityListItemPlaceholder";
 
 const ActivityDashboard = () => {
-  const {
-    handleGetNext,
-    loadingNext,
-    pagination,
-    loadingInitial,
-    activityRegistry,
-  } = useActivities();
+  const { handleGetNext, isLoadingNext, pagination, isLoadingInitial } =
+    useActivities();
 
   return (
     <Grid>
       <Grid.Column width="10">
-        {loadingInitial && !loadingNext ? (
+        {isLoadingInitial && !isLoadingNext ? (
           <>
             <ActivityListItemPlaceholder />
             <ActivityListItemPlaceholder />
@@ -27,13 +22,13 @@ const ActivityDashboard = () => {
             pageStart={0}
             loadMore={handleGetNext}
             hasMore={
-              !loadingNext &&
+              !isLoadingNext &&
               !!pagination &&
               pagination.currentPage < pagination.totalPages
             }
             initialLoad={false}
           >
-            <ActivityList activityRegistry={activityRegistry} />
+            <ActivityList />
           </InfiniteScroll>
         )}
       </Grid.Column>
@@ -41,7 +36,7 @@ const ActivityDashboard = () => {
         <ActivityFilters />
       </Grid.Column>
       <Grid.Column width={10}>
-        <Loader active={loadingNext} />
+        <Loader active={isLoadingNext} />
       </Grid.Column>
     </Grid>
   );

@@ -4,20 +4,22 @@ import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
+import { useLoggedInUser } from "../../users/userSlice";
 import ProfileEditForm from "../form/ProfileEditForm";
 import { setIsCurrentUser } from "../profileSlice";
 
 const ProfileAbout = () => {
   const { profile, isCurrentUser } = useAppSelector((state) => state.profile);
-  const user = useAppSelector((state) => state.user.user);
+  const currentUser = useLoggedInUser();
+
   const dispatch = useAppDispatch();
   const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
-    if (user && profile) {
-      dispatch(setIsCurrentUser(user.username === profile.username));
+    if (profile) {
+      dispatch(setIsCurrentUser(currentUser!.username === profile.username));
     }
-  }, [dispatch, profile, user]);
+  }, [dispatch, profile, currentUser]);
 
   return (
     <Tab.Pane>

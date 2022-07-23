@@ -25,6 +25,7 @@ import {
   convertDateISOString,
   getDistanceToNow,
 } from "../../../../app/common/utils/date";
+import { useLoggedInUser } from "../../../users/userSlice";
 
 interface Props {
   activity: Activity;
@@ -34,13 +35,11 @@ const ActivityDetailedChat = ({ activity }: Props) => {
   const dispatch = useAppDispatch();
   const comments = useAppSelector((state) => state.comment.comments);
   const [hubConnection, setHubConnection] = useState<HubConnection>();
-  const currentUser = useAppSelector((state) => state.user.user);
-  const selectedActivity = useAppSelector(
-    (state) => state.activities.selectedActivity
-  );
+  const currentUser = useLoggedInUser();
+  const { selectedActivity } = useAppSelector((state) => state.activities);
 
   useEffect(() => {
-    if (!activity || !currentUser) return;
+    if (!activity) return;
 
     if (!hubConnection) {
       setHubConnection(
@@ -48,7 +47,7 @@ const ActivityDetailedChat = ({ activity }: Props) => {
           .withUrl(
             process.env.REACT_APP_CHAT_URL + "?activityId=" + activity.id,
             {
-              accessTokenFactory: () => currentUser?.token!,
+              accessTokenFactory: () => currentUser.token!,
             }
           )
           .withAutomaticReconnect()

@@ -17,7 +17,7 @@ const panes = [
 ];
 
 const ProfileActivities = () => {
-  const { profile, loadingActivities, userActivities } = useAppSelector(
+  const { profile, isLoadingActivities, userActivities } = useAppSelector(
     (state) => state.profile
   );
   const dispatch = useAppDispatch();
@@ -36,7 +36,7 @@ const ProfileActivities = () => {
   };
 
   return (
-    <Tab.Pane loading={loadingActivities}>
+    <Tab.Pane loading={isLoadingActivities}>
       <Grid>
         <Grid.Column width={16}>
           <Header floated="left" icon="calendar" content={"Activities"} />

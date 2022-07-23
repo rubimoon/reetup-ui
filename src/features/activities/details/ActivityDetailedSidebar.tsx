@@ -7,7 +7,6 @@ interface Props {
 }
 
 const ActivityDetailedSidebar = ({ activity: { attendees, host } }: Props) => {
-  if (!attendees) return null;
   return (
     <>
       <Segment
@@ -40,7 +39,7 @@ const ActivityDetailedSidebar = ({ activity: { attendees, host } }: Props) => {
                     {attendee.displayName}
                   </Link>
                 </Item.Header>
-                {attendee.following && (
+                {attendee.isFollowing && (
                   <Item.Extra style={{ color: "orange" }}>Following</Item.Extra>
                 )}
               </Item.Content>

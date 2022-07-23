@@ -1,19 +1,13 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useMemo } from "react";
 import { Header } from "semantic-ui-react";
 import { formatDate } from "../../../app/common/utils/date";
 import { Activity } from "../../../app/models/activity";
+import { useAppSelector } from "../../../app/store/configureStore";
 import ActivityListItem from "./ActivityListItem";
 
-interface Props {
-  activityRegistry: { [key: string]: Activity };
-}
-
-const ActivityList = ({ activityRegistry }: Props) => {
-  const [groupedActivities, setGroupedActivities] = useState<
-    [string, Activity[]][]
-  >([]);
-
-  useEffect(() => {
+const ActivityList = () => {
+  const { activityRegistry } = useAppSelector((state) => state.activities);
+  const groupedActivities = useMemo(() => {
     const activitiesByDate = Object.values(activityRegistry).sort(
       (a, b) => new Date(a.date!).getTime() - new Date(b.date!).getTime()
     );
@@ -26,11 +20,8 @@ const ActivityList = ({ activityRegistry }: Props) => {
         return activities;
       }, {} as { [key: string]: Activity[] })
     );
-    setGroupedActivities(arr);
+    return arr;
   }, [activityRegistry]);
-
-  if (!activityRegistry)
-    return <h1>There is no Activity. Please create one.</h1>;
 
   return (
     <>

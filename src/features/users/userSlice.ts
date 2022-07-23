@@ -5,16 +5,17 @@ import { initialState } from "./userState";
 import { setToken } from "../../app/store/commonSlice";
 import { closeModal } from "../../app/common/modals/modalSlice";
 import { history } from "../..";
+import { useAppSelector } from "../../app/store/configureStore";
 
 export const loginAsync = createAsyncThunk<User, UserFormValues>(
   "user/loginAsync",
   async (creds, thunkAPI) => {
     try {
-      const user = await agent.Account.login(creds);
-      thunkAPI.dispatch(setToken(user.token));
+      const currentUser = await agent.Account.login(creds);
+      thunkAPI.dispatch(setToken(currentUser.token));
       thunkAPI.dispatch(closeModal());
       history.push("/activities");
-      return user;
+      return currentUser;
     } catch (error: any) {
       return thunkAPI.rejectWithValue({ error: error.response.data });
     }
@@ -55,27 +56,27 @@ export const userSlice = createSlice({
   initialState,
   reducers: {
     setCurrentUser: (state, action) => {
-      state.user = action.payload;
+      state.currentUser = action.payload;
     },
     logout: (state) => {
-      state.user = null;
+      state.currentUser = null;
     },
     setImage: (state, action) => {
-      if (state.user) state.user.image = action.payload;
+      if (state.currentUser) state.currentUser.image = action.payload;
     },
     setDisplayName: (state, action) => {
-      if (state.user) state.user.displayName = action.payload;
+      if (state.currentUser) state.currentUser.displayName = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder.addCase(loginAsync.fulfilled, (state, action) => {
-      state.user = action.payload;
+      state.currentUser = action.payload;
     });
     builder.addCase(getCurrentUserAsync.fulfilled, (state, action) => {
-      state.user = action.payload;
+      state.currentUser = action.payload;
     });
     builder.addCase(getCurrentUserAsync.rejected, (state, action) => {
-      state.user = null;
+      state.currentUser = null;
     });
     builder.addCase(registerAsync.fulfilled, (state, action) => {
       state.email = action.payload.email;
@@ -85,3 +86,9 @@ export const userSlice = createSlice({
 
 export const { setCurrentUser, logout, setImage, setDisplayName } =
   userSlice.actions;
+
+export const useUserAuth = () =>
+  !!useAppSelector((state) => state.user.currentUser);
+
+export const useLoggedInUser = () =>
+  useAppSelector((state) => state.user.currentUser)!;

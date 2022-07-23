@@ -1,10 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import agent from "../../app/api/agent";
 import { Photo, Profile, UserActivity } from "../../app/models/profile";
+import { User } from "../../app/models/user";
 import { RootState } from "../../app/store/configureStore";
+import { updateAttendeeFollowing } from "../activities/activitySlice";
 import { setDisplayName, setImage } from "../users/userSlice";
-import { loadFollowingsAsync, updateFollowingAsync } from "./followings";
-import { initialState } from "./profileState";
+import { FollowingsTypes, initialState } from "./profileState";
 
 // profile
 export const loadProfileAsync = createAsyncThunk<Profile, string>(
@@ -20,13 +21,15 @@ export const loadProfileAsync = createAsyncThunk<Profile, string>(
 
 export const updateProfileAsync = createAsyncThunk<
   void,
-  Partial<Profile>,
+  { currentUser: User; profile: Partial<Profile> },
   { state: RootState }
->("profile/updateProfileAsync", async (profile, thunkAPI) => {
-  const user = thunkAPI.getState().user.user!;
+>("profile/updateProfileAsync", async ({ currentUser, profile }, thunkAPI) => {
   try {
     await agent.Profiles.updateProfile(profile);
-    if (profile.displayName && profile.displayName !== user?.displayName) {
+    if (
+      profile.displayName &&
+      profile.displayName !== currentUser?.displayName
+    ) {
       thunkAPI.dispatch(setDisplayName(profile.displayName));
     }
     return;
@@ -38,16 +41,15 @@ export const updateProfileAsync = createAsyncThunk<
 // photos
 export const uploadPhotoAsync = createAsyncThunk<
   void,
-  Blob,
+  { currentUser: User; file: Blob },
   { state: RootState }
->("profile/uploadPhotoAsync", async (file, thunkAPI) => {
+>("profile/uploadPhotoAsync", async ({ currentUser, file }, thunkAPI) => {
   try {
     const response = await agent.Profiles.uploadPhoto(file);
     const photo = response.data;
-    const user = thunkAPI.getState().user.user;
 
     thunkAPI.dispatch(appendPhoto(photo));
-    if (photo.isMain && user) {
+    if (photo.isMain && currentUser) {
       thunkAPI.dispatch(setImage(photo.url));
       thunkAPI.dispatch(setProfileImage(photo.url));
     }
@@ -97,6 +99,34 @@ export const loadUserActivitiesAsync = createAsyncThunk<
   }
 );
 
+// followings
+export const updateFollowingAsync = createAsyncThunk<
+  User,
+  { username: string; following: boolean },
+  { state: RootState }
+>("profile/updateFollowingAsync", async ({ username, following }, thunkAPI) => {
+  try {
+    await agent.Profiles.updateFollowing(username);
+    thunkAPI.dispatch(updateAttendeeFollowing(username));
+    return thunkAPI.getState().user.currentUser!;
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
+
+export const loadFollowingsAsync = createAsyncThunk<
+  Profile[],
+  FollowingsTypes,
+  { state: RootState }
+>("profile/loadFollowingsAsync", async (predicate, thunkAPI) => {
+  const profile = thunkAPI.getState().profile.profile;
+  try {
+    return await agent.Profiles.listFollowings(profile!.username, predicate);
+  } catch (error: any) {
+    return thunkAPI.rejectWithValue({ error: error.data });
+  }
+});
+
 export const profileSlice = createSlice({
   name: "profile",
   initialState,
@@ -117,26 +147,26 @@ export const profileSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(loadProfileAsync.pending, (state) => {
-      state.loadingProfile = true;
+      state.isLoadingProfile = true;
     });
     builder.addCase(loadProfileAsync.fulfilled, (state, action) => {
       state.profile = action.payload;
-      state.loadingProfile = false;
+      state.isLoadingProfile = false;
     });
     builder.addCase(loadProfileAsync.rejected, (state) => {
-      state.loadingProfile = false;
+      state.isLoadingProfile = false;
     });
     builder.addCase(uploadPhotoAsync.pending, (state) => {
-      state.uploading = true;
+      state.isUploading = true;
     });
-    builder.addCase(uploadPhotoAsync.fulfilled, (state, action) => {
-      state.uploading = false;
+    builder.addCase(uploadPhotoAsync.fulfilled, (state) => {
+      state.isUploading = false;
     });
     builder.addCase(uploadPhotoAsync.rejected, (state) => {
-      state.uploading = false;
+      state.isUploading = false;
     });
     builder.addCase(setMainPhotoAsync.pending, (state) => {
-      state.loading = true;
+      state.isLoading = true;
     });
 
     builder.addCase(setMainPhotoAsync.fulfilled, (state, action) => {
@@ -146,15 +176,15 @@ export const profileSlice = createSlice({
         state.profile.photos.find((p) => p.id === photo.id)!.isMain = true;
         state.profile.image = photo.url;
       }
-      state.loading = false;
+      state.isLoading = false;
     });
 
     builder.addCase(setMainPhotoAsync.rejected, (state) => {
-      state.loading = false;
+      state.isLoading = false;
     });
 
     builder.addCase(deletePhotoAsync.pending, (state) => {
-      state.loading = true;
+      state.isLoading = true;
     });
 
     builder.addCase(deletePhotoAsync.fulfilled, (state, action) => {
@@ -164,25 +194,25 @@ export const profileSlice = createSlice({
           (p) => p.id !== photo.id
         );
       }
-      state.loading = false;
+      state.isLoading = false;
     });
     builder.addCase(deletePhotoAsync.rejected, (state) => {
-      state.loading = false;
+      state.isLoading = false;
     });
 
     builder.addCase(updateProfileAsync.pending, (state) => {
-      state.loading = true;
+      state.isLoading = true;
     });
     builder.addCase(updateProfileAsync.fulfilled, (state, action) => {
-      const profile = action.meta.arg;
+      const profile = action.meta.arg.profile;
       state.profile = { ...state.profile, ...(profile as Profile) };
-      state.loading = false;
+      state.isLoading = false;
     });
     builder.addCase(updateProfileAsync.rejected, (state) => {
-      state.loading = false;
+      state.isLoading = false;
     });
     builder.addCase(updateFollowingAsync.pending, (state) => {
-      state.loading = true;
+      state.isLoading = true;
     });
     builder.addCase(updateFollowingAsync.fulfilled, (state, action) => {
       const currentUser = action.payload;
@@ -195,7 +225,7 @@ export const profileSlice = createSlice({
         following
           ? state.profile.followersCount++
           : state.profile.followersCount--;
-        state.profile.following = !state.profile.following;
+        state.profile.isFollowing = !state.profile.isFollowing;
       }
       if (state.profile && state.profile.username === currentUser?.username) {
         following
@@ -204,36 +234,36 @@ export const profileSlice = createSlice({
       }
       state.followings.forEach((profile) => {
         if (profile.username === username) {
-          profile.following
+          profile.isFollowing
             ? profile.followersCount--
             : profile.followersCount++;
-          profile.following = !profile.following;
+          profile.isFollowing = !profile.isFollowing;
         }
       });
-      state.loading = false;
+      state.isLoading = false;
     });
     builder.addCase(updateFollowingAsync.rejected, (state) => {
-      state.loading = false;
+      state.isLoading = false;
     });
     builder.addCase(loadFollowingsAsync.pending, (state) => {
-      state.loadingFollowings = true;
+      state.isLoadingFollowings = true;
     });
     builder.addCase(loadFollowingsAsync.fulfilled, (state, action) => {
       state.followings = action.payload;
-      state.loadingFollowings = false;
+      state.isLoadingFollowings = false;
     });
     builder.addCase(loadFollowingsAsync.rejected, (state) => {
-      state.loadingFollowings = false;
+      state.isLoadingFollowings = false;
     });
     builder.addCase(loadUserActivitiesAsync.pending, (state) => {
-      state.loadingActivities = true;
+      state.isLoadingActivities = true;
     });
     builder.addCase(loadUserActivitiesAsync.fulfilled, (state, action) => {
       state.userActivities = action.payload;
-      state.loadingActivities = false;
+      state.isLoadingActivities = false;
     });
     builder.addCase(loadUserActivitiesAsync.rejected, (state) => {
-      state.loadingActivities = false;
+      state.isLoadingActivities = false;
     });
   },
 });

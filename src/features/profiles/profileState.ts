@@ -2,27 +2,27 @@ import { Profile, UserActivity } from "../../app/models/profile";
 
 export interface ProfileState {
   profile: Profile | null;
-  loadingProfile: boolean;
-  uploading: boolean;
-  loading: boolean;
+  isLoadingProfile: boolean;
+  isUploading: boolean;
+  isLoading: boolean;
   activeTab: number;
   userActivities: UserActivity[];
-  loadingActivities: boolean;
+  isLoadingActivities: boolean;
   followings: Profile[];
-  loadingFollowings: boolean;
+  isLoadingFollowings: boolean;
   isCurrentUser: boolean | undefined;
 }
 
 export const initialState: ProfileState = {
   profile: null,
-  loadingProfile: false,
-  uploading: false,
-  loading: false,
+  isLoadingProfile: false,
+  isUploading: false,
+  isLoading: false,
   activeTab: 0,
   userActivities: [],
-  loadingActivities: false,
+  isLoadingActivities: false,
   followings: [],
-  loadingFollowings: false,
+  isLoadingFollowings: false,
   isCurrentUser: undefined,
 };
 

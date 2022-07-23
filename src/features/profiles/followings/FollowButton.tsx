@@ -1,26 +1,28 @@
 import { SyntheticEvent } from "react";
 import { Reveal, Button } from "semantic-ui-react";
-import { updateFollowingAsync } from ".";
 import { Profile } from "../../../app/models/profile";
 import {
   useAppDispatch,
   useAppSelector,
 } from "../../../app/store/configureStore";
+import { useLoggedInUser } from "../../users/userSlice";
+import { updateFollowingAsync } from "../profileSlice";
 
 interface Props {
   profile: Profile;
 }
 
 const FollowButton = ({ profile }: Props) => {
-  const { loading } = useAppSelector((state) => state.profile);
-  const user = useAppSelector((state) => state.user.user);
+  const { isLoading } = useAppSelector((state) => state.profile);
+  // const { currentUser } = useAppSelector((state) => state.user);
+  const currentUser = useLoggedInUser();
   const dispatch = useAppDispatch();
 
-  if (user?.username === profile.username) return null;
+  if (currentUser?.username === profile.username) return null;
 
   function handleFollow(e: SyntheticEvent, username: string) {
     e.preventDefault();
-    profile.following
+    profile.isFollowing
       ? dispatch(updateFollowingAsync({ username, following: false }))
       : dispatch(updateFollowingAsync({ username, following: true }));
   }
@@ -31,16 +33,16 @@ const FollowButton = ({ profile }: Props) => {
         <Button
           fluid
           color="teal"
-          content={profile.following ? "Following" : "Not following"}
+          content={profile.isFollowing ? "Following" : "Not following"}
         />
       </Reveal.Content>
       <Reveal.Content hidden style={{ width: "100%" }}>
         <Button
           fluid
           basic
-          color={profile.following ? "red" : "green"}
-          content={profile.following ? "Unfollow" : "Follow"}
-          loading={loading}
+          color={profile.isFollowing ? "red" : "green"}
+          content={profile.isFollowing ? "Unfollow" : "Follow"}
+          loading={isLoading}
           onClick={(e) => handleFollow(e, profile.username)}
         />
       </Reveal.Content>

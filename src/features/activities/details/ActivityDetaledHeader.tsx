@@ -11,6 +11,7 @@ import {
   updateAttendanceAsync,
 } from "../activitySlice";
 import { formatDate } from "../../../app/common/utils/date";
+import { useLoggedInUser } from "../../users/userSlice";
 
 const activityImageStyle = {
   filter: "brightness(30%)",
@@ -30,20 +31,19 @@ interface Props {
 }
 
 const ActivityDetailedHeader = ({ activity }: Props) => {
-  const { loading, selectedActivity } = useAppSelector(
+  const { isLoading, selectedActivity } = useAppSelector(
     (state) => state.activities
   );
-  const currentUser = useAppSelector((state) => state.user.user);
+  const currentUser = useLoggedInUser();
 
   const dispatch = useAppDispatch();
 
   const handleUpdateAttendanceAsync = () => {
-    if (currentUser) dispatch(updateAttendanceAsync({ currentUser }));
+    dispatch(updateAttendanceAsync(currentUser!));
   };
 
   const handleDeleteActivity = () => {
-    if (!selectedActivity) return;
-    dispatch(cancelActivityToggleAsync(selectedActivity));
+    dispatch(cancelActivityToggleAsync(selectedActivity!));
   };
 
   return (
@@ -98,7 +98,7 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
                   : "Cancel Activity"
               }
               onClick={handleDeleteActivity}
-              loading={loading}
+              loading={isLoading}
             />
             <Button
               as={Link}
@@ -111,13 +111,13 @@ const ActivityDetailedHeader = ({ activity }: Props) => {
             </Button>
           </>
         ) : activity.isGoing ? (
-          <Button loading={loading} onClick={handleUpdateAttendanceAsync}>
+          <Button loading={isLoading} onClick={handleUpdateAttendanceAsync}>
             Cancel attendance
           </Button>
         ) : (
           <Button
             disabled={activity.isCancelled}
-            loading={loading}
+            loading={isLoading}
             onClick={handleUpdateAttendanceAsync}
             color="teal"
           >

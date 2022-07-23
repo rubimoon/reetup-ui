@@ -1,11 +1,11 @@
 import { User } from "../../app/models/user";
 
 export interface UserState {
-  user: User | null;
+  currentUser: User | null;
   email: string;
 }
 
 export const initialState: UserState = {
-  user: null,
+  currentUser: null,
   email: "",
 };
