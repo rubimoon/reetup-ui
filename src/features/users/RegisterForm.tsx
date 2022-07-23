@@ -43,7 +43,7 @@ const RegisterForm = () => {
           >
             <Header
               as="h2"
-              content="Sign up to Reactivites"
+              content="Sign up to Reetup"
               color="teal"
               textAlign="center"
             />
