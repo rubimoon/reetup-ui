@@ -2,8 +2,10 @@ import { createSlice } from "@reduxjs/toolkit";
 
 interface Modal {
   open: boolean;
-  modalType: string | null;
+  modalType: ModalType | null;
 }
+
+export type ModalType = "LoginForm" | "RegisterForm";
 
 interface ModalState {
   modal: Modal;

@@ -5,7 +5,6 @@ import agent from "../../app/api/agent";
 import useQuery from "../../app/common/hooks/useQuery";
 import { useAppDispatch } from "../../app/store/configureStore";
 import { openModal } from "../../app/common/modals/modalSlice";
-import LoginForm from "./LoginForm";
 
 export default function ConfirmEmail() {
   const dispatch = useAppDispatch();
@@ -63,9 +62,11 @@ export default function ConfirmEmail() {
             <p>Email has been verified - you can now login</p>
             <Button
               primary
-              onClick={() => dispatch(openModal(<LoginForm />))}
+              onClick={() => dispatch(openModal("LoginForm"))}
               size="huge"
-            />
+            >
+              Login
+            </Button>
           </div>
         );
     }
