@@ -79,7 +79,6 @@ const AppRoutes = ({ location }: Props) => {
           />
         }
       />
-      <Route path="/errors" element={wrapper(TestErrors)} />
       <Route path="/server-error" element={wrapper(ServerError)} />
       <Route
         path="/account/registerSuccess"
