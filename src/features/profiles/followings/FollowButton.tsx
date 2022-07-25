@@ -14,7 +14,6 @@ interface Props {
 
 const FollowButton = ({ profile }: Props) => {
   const { isLoading } = useAppSelector((state) => state.profile);
-  // const { currentUser } = useAppSelector((state) => state.user);
   const currentUser = useLoggedInUser();
   const dispatch = useAppDispatch();
 

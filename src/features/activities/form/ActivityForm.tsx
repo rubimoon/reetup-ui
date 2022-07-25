@@ -36,7 +36,6 @@ const ActivityForm = () => {
   const { isLoadingInitial, selectedActivity } = useAppSelector(
     (state) => state.activities
   );
-  // const { currentUser } = useAppSelector((state) => state.user);
   const currentUser = useLoggedInUser();
   const initialFormValues = selectedActivity
     ? mapActivityToActivityFormValues(selectedActivity)
