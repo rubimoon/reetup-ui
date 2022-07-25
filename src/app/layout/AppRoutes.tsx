@@ -8,7 +8,6 @@ import NotFound from "../errors/ui/NotFound";
 import RegisterSuccess from "../../features/users/RegisterSuccess";
 import ConfirmEmail from "../../features/users/ConfirmEmail";
 import ServerError from "../errors/ui/ServerError";
-import TestErrors from "../errors/ui/TestError";
 import ProfilePage from "../../features/profiles/layout/ProfilePage";
 import NavBar from "./NavBar";
 import { Container } from "semantic-ui-react";

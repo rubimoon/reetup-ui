@@ -11,8 +11,8 @@ import { loadUserActivitiesAsync } from "../profileSlice";
 import { formatDoLLL, formatTime } from "../../../app/common/utils/date";
 
 const panes = [
-  { menuItem: "Future Events", pane: { key: "future" } },
-  { menuItem: "Past Events", pane: { key: "past" } },
+  { menuItem: "Future Activites", pane: { key: "future" } },
+  { menuItem: "Past Activities", pane: { key: "past" } },
   { menuItem: "Hosting", pane: { key: "hosting" } },
 ];
 

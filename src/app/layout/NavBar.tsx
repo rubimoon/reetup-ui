@@ -32,7 +32,7 @@ const NavBar = () => {
         </Menu.Item>
         {isLoggedIn && (
           <>
-            ( <Menu.Item as={NavLink} to="/activities" name="Activities" />
+            <Menu.Item as={NavLink} to="/activities" name="Activities" />
             <Menu.Item>
               <Button
                 as={NavLink}
@@ -63,7 +63,6 @@ const NavBar = () => {
                 </Dropdown.Menu>
               </Dropdown>
             </Menu.Item>
-            )
           </>
         )}
       </Container>
